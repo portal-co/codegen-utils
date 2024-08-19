@@ -1,0 +1,10 @@
+[package]
+name = "arena-traits"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+id-arena = { workspace = true, optional = true }
+
+[features]
+id-arena = ["dep:id-arena"]
