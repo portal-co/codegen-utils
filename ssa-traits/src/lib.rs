@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, iter::once};
 
 use arena_traits::Arena;
 use either::Either;
@@ -13,6 +13,36 @@ pub trait Func {
     fn values_mut(&mut self) -> &mut Self::Values;
     fn blocks_mut(&mut self) -> &mut Self::Blocks;
     fn entry(&self) -> Self::Block;
+}
+
+#[repr(transparent)]
+pub struct Val<F: Func + ?Sized>(pub F::Value);
+impl<F: Func<Value: Clone> + ?Sized> Clone for Val<F>{
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+impl<F: Func<Value: Clone> + ?Sized> HasValues<F> for Val<F>{
+    fn values(&self, f: &F) -> impl Iterator<Item = <F as Func>::Value> {
+        once(self.0.clone())
+    }
+
+    fn values_mut<'a>(&'a mut self, g: &'a mut F) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    where
+        F: 'a {
+        once(&mut self.0)
+    }
+}
+impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Val<F>{
+    fn values_chain(&self) -> impl Iterator<Item = <F as Func>::Value> {
+        once(self.0.clone())
+    }
+
+    fn values_chain_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    where
+        F: 'a {
+            once(&mut self.0)
+    }
 }
 pub trait Builder<F: Func> {
     type Result;
