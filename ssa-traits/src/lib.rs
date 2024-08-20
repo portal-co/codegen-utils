@@ -50,7 +50,7 @@ pub trait TypedBlock<F: TypedFunc<Blocks: Arena<F::Block, Output = Self>> + ?Siz
 
 pub trait HasValues<F: Func + ?Sized> {
     fn values(&self, f: &F) -> impl Iterator<Item = F::Value>;
-    fn values_mut<'a>(&'a mut self, g: &mut F) -> impl Iterator<Item = &mut F::Value>
+    fn values_mut<'a>(&'a mut self, g: &'a mut F) -> impl Iterator<Item = &'a mut F::Value>
     where
         F: 'a;
 }
@@ -62,7 +62,7 @@ impl<F: Func + ?Sized, A: HasValues<F>, B: HasValues<F>> HasValues<F> for Either
         }
     }
 
-    fn values_mut<'a>(&'a mut self, f: &mut F) -> impl Iterator<Item = &mut <F as Func>::Value>
+    fn values_mut<'a>(&'a mut self, f: &'a mut F) -> impl Iterator<Item = &'a mut <F as Func>::Value>
     where
         F: 'a,
     {
