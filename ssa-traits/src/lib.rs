@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use arena_traits::Arena;
 use either::Either;
-
+pub mod op;
 pub trait Func {
     type Value;
     type Block;
@@ -54,6 +54,15 @@ pub trait HasValues<F: Func + ?Sized> {
     where
         F: 'a;
 }
+pub trait FromValues<F: Func + ?Sized>: HasValues<F>{
+    fn from_values(f: &mut F, i: impl Iterator<Item = F::Value>) -> Self;
+}
+pub trait HasChainableValues<F: Func + ?Sized>: HasValues<F>{
+    fn values_chain(&self) -> impl Iterator<Item = F::Value>;
+    fn values_chain_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut F::Value>
+    where
+        F: 'a;
+}
 impl<F: Func + ?Sized, A: HasValues<F>, B: HasValues<F>> HasValues<F> for Either<A, B> {
     fn values(&self, f: &F) -> impl Iterator<Item = <F as Func>::Value> {
         match self {
@@ -70,6 +79,23 @@ impl<F: Func + ?Sized, A: HasValues<F>, B: HasValues<F>> HasValues<F> for Either
             Either::Left(a) => Either::Left(a.values_mut(f)),
             Either::Right(b) => Either::Right(b.values_mut(f)),
         }
+    }
+}
+impl<F: Func + ?Sized, A: HasChainableValues<F>, B: HasChainableValues<F>> HasChainableValues<F> for Either<A, B>{
+    fn values_chain(&self) -> impl Iterator<Item = <F as Func>::Value> {
+        match self{
+            Either::Left(a) => Either::Left(a.values_chain()),
+            Either::Right(b) => Either::Right(b.values_chain()),
+        }
+    }
+
+    fn values_chain_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    where
+        F: 'a {
+            match self{
+                Either::Left(a) => Either::Left(a.values_chain_mut()),
+                Either::Right(b) => Either::Right(b.values_chain_mut()),
+            }
     }
 }
 pub trait Target<F: Func + ?Sized>: Term<F, Target = Self> {
