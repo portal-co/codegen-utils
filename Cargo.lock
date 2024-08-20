@@ -72,6 +72,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ssa-impls"
+version = "0.1.0"
+dependencies = [
+ "arena-traits",
+ "ssa-traits",
+]
+
+[[package]]
 name = "ssa-traits"
 version = "0.1.0"
 dependencies = [

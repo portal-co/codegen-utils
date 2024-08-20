@@ -1,5 +1,5 @@
 [workspace]
-members=["onion","arena-traits", "ssa-traits"]
+members=["onion","arena-traits", "ssa-traits", "ssa-impls"]
 resolver="2"
 
 [workspace.dependencies]

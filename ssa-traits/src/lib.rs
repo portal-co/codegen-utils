@@ -12,6 +12,7 @@ pub trait Func {
     fn blocks(&self) -> &Self::Blocks;
     fn values_mut(&mut self) -> &mut Self::Values;
     fn blocks_mut(&mut self) -> &mut Self::Blocks;
+    fn entry(&self) -> Self::Block;
 }
 pub trait Builder<F: Func> {
     type Result;
@@ -25,10 +26,12 @@ pub trait Block<F: Func<Blocks: Arena<F::Block, Output = Self>> + ?Sized> {
     fn term_mut(&mut self) -> &mut Self::Terminator;
 }
 pub trait Value<F: Func<Values: Arena<F::Value, Output = Self>> + ?Sized>: HasValues<F> {}
+
+
 pub trait TypedValue<F: TypedFunc<Values: Arena<F::Value, Output = Self>> + ?Sized>:
     Value<F>
 {
-    fn ty(&self) -> F::Ty;
+    fn ty(&self, f: &F) -> F::Ty;
 }
 pub trait TypedFunc:
     Func<
@@ -46,32 +49,33 @@ pub trait TypedBlock<F: TypedFunc<Blocks: Arena<F::Block, Output = Self>> + ?Siz
 }
 
 pub trait HasValues<F: Func + ?Sized> {
-    fn values(&self) -> impl Iterator<Item = F::Value>;
-    fn values_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut F::Value>
+    fn values(&self, f: &F) -> impl Iterator<Item = F::Value>;
+    fn values_mut<'a>(&'a mut self, g: &mut F) -> impl Iterator<Item = &mut F::Value>
     where
         F: 'a;
 }
 impl<F: Func + ?Sized, A: HasValues<F>, B: HasValues<F>> HasValues<F> for Either<A, B> {
-    fn values(&self) -> impl Iterator<Item = <F as Func>::Value> {
+    fn values(&self, f: &F) -> impl Iterator<Item = <F as Func>::Value> {
         match self {
-            Either::Left(a) => Either::Left(a.values()),
-            Either::Right(b) => Either::Right(b.values()),
+            Either::Left(a) => Either::Left(a.values(f)),
+            Either::Right(b) => Either::Right(b.values(f)),
         }
     }
 
-    fn values_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    fn values_mut<'a>(&'a mut self, f: &mut F) -> impl Iterator<Item = &mut <F as Func>::Value>
     where
         F: 'a,
     {
         match self {
-            Either::Left(a) => Either::Left(a.values_mut()),
-            Either::Right(b) => Either::Right(b.values_mut()),
+            Either::Left(a) => Either::Left(a.values_mut(f)),
+            Either::Right(b) => Either::Right(b.values_mut(f)),
         }
     }
 }
 pub trait Target<F: Func + ?Sized>: Term<F, Target = Self> {
     fn block(&self) -> F::Block;
     fn block_mut(&mut self) -> &mut F::Block;
+    fn push_value(&mut self, v: F::Value);
     fn from_values_and_block(a: impl Iterator<Item = F::Value>, k: F::Block) -> Self;
 }
 pub trait Term<F: Func + ?Sized>: HasValues<F> {
