@@ -20,7 +20,7 @@ pub trait Builder<F: Func> {
 }
 pub trait Block<F: Func<Blocks: Arena<F::Block, Output = Self>> + ?Sized> {
     fn insts(&self) -> impl Iterator<Item = F::Value>;
-    fn add_inst(&mut self, v: F::Value);
+    fn add_inst(func: &mut F,key:F::Block, v: F::Value);
     type Terminator: Term<F>;
     fn term(&self) -> &Self::Terminator;
     fn term_mut(&mut self) -> &mut Self::Terminator;
