@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.86"
+anyhow = "1.0"
 arena-traits = { version = "0.1.0", path = "../arena-traits" }
 either = "1.13.0"
