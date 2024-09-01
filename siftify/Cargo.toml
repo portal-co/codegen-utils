@@ -2,6 +2,8 @@
 name = "siftify"
 version = "0.1.0"
 edition = "2021"
+license = "CC0-1.0"
+description = "Traits for arenas"
 
 [dependencies]
 proc-macro2 = "1.0.86"
