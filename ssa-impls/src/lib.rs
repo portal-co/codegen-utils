@@ -5,6 +5,7 @@ use ssa_traits::{Block, Func, Target, Term};
 pub mod dom;
 pub mod cfg;
 pub mod maxssa;
+pub mod reducify;
 pub fn preds<F: Func<Block: Clone + Eq>>(f: &F, k: F::Block) -> impl Iterator<Item = F::Block> + '_{
     return f.blocks().iter().filter(move|x| {
         let k = k.clone();

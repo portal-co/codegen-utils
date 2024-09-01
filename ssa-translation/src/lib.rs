@@ -76,7 +76,7 @@ impl<
             self.in_map.insert((b.clone(), i.clone()), v.clone());
             let mut vals = BTreeMap::new();
             let mut params = vec![];
-            for fp in f.blocks()[b.clone()].params() {
+            for (fp,_) in f.blocks()[b.clone()].params() {
                 let val;
                 (val, v) = self.wrapped.add_blockparam(&i, g, f, v.clone(), fp)?;
                 params.push(val);

@@ -75,7 +75,7 @@ pub trait TypedFunc:
 pub trait TypedBlock<F: TypedFunc<Blocks: Arena<F::Block, Output = Self>> + ?Sized>:
     Block<F>
 {
-    fn params(&self) -> impl Iterator<Item = F::Ty>;
+    fn params(&self) -> impl Iterator<Item = (F::Ty,F::Value)>;
 }
 
 pub trait HasValues<F: Func + ?Sized> {
