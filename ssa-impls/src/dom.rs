@@ -112,7 +112,7 @@ pub fn calculate<F: Func<Block: Ord + Clone>, PredFn: FnMut(B<F>) -> BTreeSet<B<
     idom
 }
 
-pub fn domtree<F: Func<Block: Ord + Clone>>(f: &mut F) -> BTreeMap<B<F>, F::Block> {
+pub fn domtree<F: Func<Block: Ord + Clone>>(f: &F) -> BTreeMap<B<F>, F::Block> {
     let rpo = crate::cfg::postorder(f)
         .into_iter()
         .map(Some)

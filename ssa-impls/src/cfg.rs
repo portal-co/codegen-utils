@@ -54,7 +54,7 @@ pub fn calculate_postorder<
 
     ret
 }
-pub fn postorder<F: Func<Block: Ord + Clone>>(f: &mut F) -> Vec<F::Block> {
+pub fn postorder<F: Func<Block: Ord + Clone>>(f: &F) -> Vec<F::Block> {
     return calculate_postorder::<F, _>(f.entry(), |a| {
         f.blocks()[a].term().targets().map(|a| a.block()).collect()
     });

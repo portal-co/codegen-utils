@@ -1,0 +1,10 @@
+[package]
+name = "ssa-canon"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.86"
+arena-traits = { version = "0.1.0", path = "../arena-traits", features = ["id-arena"] }
+id-arena.workspace = true
+ssa-traits = { version = "0.1.0", path = "../ssa-traits" }

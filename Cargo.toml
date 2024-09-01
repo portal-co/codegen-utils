@@ -1,8 +1,8 @@
 [workspace]
-members=["onion","arena-traits", "ssa-traits", "ssa-impls"]
+members=["arena-traits", "ssa-traits", "ssa-impls",  "ssa-translation", "ssa-reloop", "ssa-cc", "ssa-canon"]
 resolver="2"
 
 [workspace.dependencies]
 
 
-id-arena = {git="https://github.com/portal-co/id-arena-fork.git",branch="serialize"}
+id-arena = "2.2.1"
