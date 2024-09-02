@@ -18,6 +18,12 @@ pub struct Reducifier<F: RedFunc> {
     blocks: BTreeMap<F::Block, BlockState<F>>,
 }
 
+impl<F: RedFunc> Default for Reducifier<F>{
+    fn default() -> Self {
+        Self { blocks: Default::default() }
+    }
+}
+
 struct BlockState<F: RedFunc> {
     headers: BTreeSet<F::Block>,
     is_header: bool,
