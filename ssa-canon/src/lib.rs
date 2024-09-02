@@ -10,7 +10,7 @@ pub enum Value<O, T, Y> {
 pub struct Block<O, T, Y> {
     pub term: T,
     pub insts: Vec<Id<Value<O, T, Y>>>,
-    pub params: Vec<Y>,
+    pub params: Vec<(Y,Id<Value<O,T,Y>>)>,
 }
 pub struct Target<O,T,Y>{
     pub args: Vec<Id<Value<O,T,Y>>>,
@@ -55,12 +55,12 @@ impl<O,T: Term<Func<O,T,Y>,Target = Target<O,T,Y>>,Y: Clone> ssa_traits::TypedFu
 
     fn add_blockparam(&mut self, k: Self::Block, y: Self::Ty) -> Self::Value {
         let i = self.blocks[k].params.len();
-        self.blocks[k].params.push(y.clone());
-        let v = self.vals.alloc(Value::Param(i, k, y));
+        let v = self.vals.alloc(Value::Param(i, k, y.clone()));
         self.blocks[k].insts = vec![v]
             .into_iter()
             .chain(self.blocks[k].insts.iter().map(|a| *a))
             .collect();
+        self.blocks[k].params.push((y.clone(),v));
         return v;
     }
 }
@@ -117,7 +117,7 @@ impl<O,T: Term<Func<O,T,Y>,Target = Target<O,T,Y>>,Y: Clone> ssa_traits::Block<F
 }
 
 impl<O,T: Term<Func<O,T,Y>,Target = Target<O,T,Y>>,Y: Clone> ssa_traits::TypedBlock<Func<O,T,Y>> for Block<O,T,Y>{
-    fn params(&self) -> impl Iterator<Item = <Func<O,T,Y> as ssa_traits::TypedFunc>::Ty> {
+    fn params(&self) -> impl Iterator<Item = (<Func<O,T,Y> as ssa_traits::TypedFunc>::Ty,Id<Value<O,T,Y>>)> {
         self.params.iter().cloned()
     }
 }
