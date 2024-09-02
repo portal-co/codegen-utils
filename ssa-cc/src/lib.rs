@@ -7,7 +7,7 @@ pub fn cc<F: CCFunc>(s: &F) -> anyhow::Result<String> {
     let params = s.blocks()[s.entry()]
         .params()
         .enumerate()
-        .map(|(a, b)| Ok(format!("{} {}", b.c(s)?, kp(&s.entry(), a, s)?)))
+        .map(|(a, (b,_))| Ok(format!("{} {}", b.c(s)?, kp(&s.entry(), a, s)?)))
         .collect::<anyhow::Result<Vec<_>>>()?
         .join(",");
     let vars = s
@@ -18,7 +18,7 @@ pub fn cc<F: CCFunc>(s: &F) -> anyhow::Result<String> {
             s.blocks()[c.clone()]
                 .params()
                 .enumerate()
-                .map(move |(a, b)| Ok(format!("{} {}", b.c(s)?, kp(&c, a, s)?)))
+                .map(move |(a, (b,_))| Ok(format!("{} {}", b.c(s)?, kp(&c, a, s)?)))
         })
         .chain(
             s.values()
