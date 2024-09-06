@@ -12,7 +12,7 @@ pub trait Translator<F: TypedFunc, G: Func> {
     type Instance;
     fn add_blockparam(
         &mut self,
-        i: &Self::Instance,
+        i: &mut Self::Instance,
         g: &mut G,
         f: &F,
         k: G::Block,
@@ -20,7 +20,7 @@ pub trait Translator<F: TypedFunc, G: Func> {
     ) -> anyhow::Result<(Self::Meta, G::Block)>;
     fn emit_val<T: AsMut<Self>>(
         ctx: &mut T,
-        i: &Self::Instance,
+        i: &mut Self::Instance,
         g: &mut G,
         f: &F,
         k: G::Block,
@@ -31,7 +31,7 @@ pub trait Translator<F: TypedFunc, G: Func> {
     ) -> anyhow::Result<(Self::Meta, G::Block)>;
     fn emit_term<T: AsMut<Self>>(
         ctx: &mut T,
-        i: &Self::Instance,
+        i: &mut Self::Instance,
         g: &mut G,
         f: &F,
         k: G::Block,
@@ -66,29 +66,30 @@ impl<
         g: &mut G,
         f: &F,
         b: F::Block,
-        i: T::Instance,
+        mut i: T::Instance,
     ) -> anyhow::Result<G::Block> {
         loop {
             if let Some(v) = self.in_map.get(&(b.clone(), i.clone())) {
                 return Ok(v.clone());
             }
+            let mut i = i.clone();
             let mut v = g.blocks_mut().alloc(Default::default());
             self.in_map.insert((b.clone(), i.clone()), v.clone());
             let mut vals = BTreeMap::new();
             let mut params = vec![];
             for (fp,_) in f.blocks()[b.clone()].params() {
                 let val;
-                (val, v) = self.wrapped.add_blockparam(&i, g, f, v.clone(), fp)?;
+                (val, v) = self.wrapped.add_blockparam(&mut i, g, f, v.clone(), fp)?;
                 params.push(val);
             }
             for val2 in f.blocks()[b.clone()].insts() {
                 let w = &f.values()[val2.clone()];
                 let val;
-                (val, v) = T::emit_val(self, &i, g, f, v.clone(), &vals, &params, Self::go, w)?;
+                (val, v) = T::emit_val(self, &mut i, g, f, v.clone(), &vals, &params, Self::go, w)?;
                 vals.insert(val2, val);
             }
             let t = f.blocks()[b.clone()].term();
-            T::emit_term(self, &i, g, f, v.clone(), &vals, &params, Self::go, &t)?;
+            T::emit_term(self, &mut i, g, f, v.clone(), &vals, &params, Self::go, &t)?;
         }
     }
 }

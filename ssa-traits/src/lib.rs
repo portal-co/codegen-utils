@@ -17,46 +17,75 @@ pub trait Func {
 
 #[repr(transparent)]
 pub struct Val<F: Func + ?Sized>(pub F::Value);
-impl<F: Func<Value: Clone> + ?Sized> Clone for Val<F>{
+impl<F: Func<Value: Clone> + ?Sized> Clone for Val<F> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }
 }
-impl<F: Func<Value: Clone> + ?Sized> HasValues<F> for Val<F>{
+impl<F: Func<Value: Clone> + ?Sized> HasValues<F> for Val<F> {
     fn values(&self, f: &F) -> impl Iterator<Item = <F as Func>::Value> {
         once(self.0.clone())
     }
 
-    fn values_mut<'a>(&'a mut self, g: &'a mut F) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    fn values_mut<'a>(
+        &'a mut self,
+        g: &'a mut F,
+    ) -> impl Iterator<Item = &'a mut <F as Func>::Value>
     where
-        F: 'a {
+        F: 'a,
+    {
         once(&mut self.0)
     }
 }
-impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Val<F>{
+impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Val<F> {
     fn values_chain(&self) -> impl Iterator<Item = <F as Func>::Value> {
         once(self.0.clone())
     }
 
     fn values_chain_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut <F as Func>::Value>
     where
-        F: 'a {
-            once(&mut self.0)
+        F: 'a,
+    {
+        once(&mut self.0)
     }
+}
+pub struct BuildFn<F> {
+    pub func: F,
 }
 pub trait Builder<F: Func> {
     type Result;
     fn build(self, f: &mut F, k: F::Block) -> anyhow::Result<(Self::Result, F::Block)>;
 }
+impl<F: Func, B: Builder<F>> Builder<F> for anyhow::Result<B> {
+    type Result = B::Result;
+
+    fn build(
+        self,
+        f: &mut F,
+        k: <F as Func>::Block,
+    ) -> anyhow::Result<(Self::Result, <F as Func>::Block)> {
+        self?.build(f, k)
+    }
+}
+impl<F: FnOnce(&mut G, G::Block) -> anyhow::Result<(R, G::Block)>, G: Func, R> Builder<G> for F {
+    type Result = R;
+
+    fn build(
+        self,
+        f: &mut G,
+        k: <G as Func>::Block,
+    ) -> anyhow::Result<(Self::Result, <G as Func>::Block)> {
+        self(f, k)
+    }
+}
 pub trait Block<F: Func<Blocks: Arena<F::Block, Output = Self>> + ?Sized> {
     fn insts(&self) -> impl Iterator<Item = F::Value>;
-    fn add_inst(func: &mut F,key:F::Block, v: F::Value);
+    fn add_inst(func: &mut F, key: F::Block, v: F::Value);
     type Terminator: Term<F>;
     fn term(&self) -> &Self::Terminator;
     fn term_mut(&mut self) -> &mut Self::Terminator;
 }
 pub trait Value<F: Func<Values: Arena<F::Value, Output = Self>> + ?Sized>: HasValues<F> {}
-
 
 pub trait TypedValue<F: TypedFunc<Values: Arena<F::Value, Output = Self>> + ?Sized>:
     Value<F>
@@ -75,7 +104,7 @@ pub trait TypedFunc:
 pub trait TypedBlock<F: TypedFunc<Blocks: Arena<F::Block, Output = Self>> + ?Sized>:
     Block<F>
 {
-    fn params(&self) -> impl Iterator<Item = (F::Ty,F::Value)>;
+    fn params(&self) -> impl Iterator<Item = (F::Ty, F::Value)>;
 }
 
 pub trait HasValues<F: Func + ?Sized> {
@@ -84,10 +113,10 @@ pub trait HasValues<F: Func + ?Sized> {
     where
         F: 'a;
 }
-pub trait FromValues<F: Func + ?Sized>: HasValues<F>{
+pub trait FromValues<F: Func + ?Sized>: HasValues<F> {
     fn from_values(f: &mut F, i: impl Iterator<Item = F::Value>) -> Self;
 }
-pub trait HasChainableValues<F: Func + ?Sized>: HasValues<F>{
+pub trait HasChainableValues<F: Func + ?Sized>: HasValues<F> {
     fn values_chain(&self) -> impl Iterator<Item = F::Value>;
     fn values_chain_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut F::Value>
     where
@@ -101,7 +130,10 @@ impl<F: Func + ?Sized, A: HasValues<F>, B: HasValues<F>> HasValues<F> for Either
         }
     }
 
-    fn values_mut<'a>(&'a mut self, f: &'a mut F) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    fn values_mut<'a>(
+        &'a mut self,
+        f: &'a mut F,
+    ) -> impl Iterator<Item = &'a mut <F as Func>::Value>
     where
         F: 'a,
     {
@@ -111,9 +143,11 @@ impl<F: Func + ?Sized, A: HasValues<F>, B: HasValues<F>> HasValues<F> for Either
         }
     }
 }
-impl<F: Func + ?Sized, A: HasChainableValues<F>, B: HasChainableValues<F>> HasChainableValues<F> for Either<A, B>{
+impl<F: Func + ?Sized, A: HasChainableValues<F>, B: HasChainableValues<F>> HasChainableValues<F>
+    for Either<A, B>
+{
     fn values_chain(&self) -> impl Iterator<Item = <F as Func>::Value> {
-        match self{
+        match self {
             Either::Left(a) => Either::Left(a.values_chain()),
             Either::Right(b) => Either::Right(b.values_chain()),
         }
@@ -121,11 +155,12 @@ impl<F: Func + ?Sized, A: HasChainableValues<F>, B: HasChainableValues<F>> HasCh
 
     fn values_chain_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut <F as Func>::Value>
     where
-        F: 'a {
-            match self{
-                Either::Left(a) => Either::Left(a.values_chain_mut()),
-                Either::Right(b) => Either::Right(b.values_chain_mut()),
-            }
+        F: 'a,
+    {
+        match self {
+            Either::Left(a) => Either::Left(a.values_chain_mut()),
+            Either::Right(b) => Either::Right(b.values_chain_mut()),
+        }
     }
 }
 pub trait Target<F: Func + ?Sized>: Term<F, Target = Self> {
