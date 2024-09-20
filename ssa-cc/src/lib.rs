@@ -1,13 +1,16 @@
+use std::iter::empty;
+
 use arena_traits::Arena;
 
+use either::Either;
 // use ssa_traits::TypedFunc;
 use ssa_traits::*;
 
-pub fn cc<F: CCFunc>(s: &F) -> anyhow::Result<String> {
-    let params = s.blocks()[s.entry()]
+pub fn cc<F: CCFunc>(s: &F, e: F::Block) -> anyhow::Result<String> {
+    let params = s.blocks()[e.clone()]
         .params()
         .enumerate()
-        .map(|(a, (b,_))| Ok(format!("{} {}", b.c(s)?, kp(&s.entry(), a, s)?)))
+        .map(|(a, (b, _))| Ok(format!("{} {}", b.c(s)?, kp(&e, a, s)?)))
         .collect::<anyhow::Result<Vec<_>>>()?
         .join(",");
     let vars = s
@@ -18,7 +21,7 @@ pub fn cc<F: CCFunc>(s: &F) -> anyhow::Result<String> {
             s.blocks()[c.clone()]
                 .params()
                 .enumerate()
-                .map(move |(a, (b,_))| Ok(format!("{} {}", b.c(s)?, kp(&c, a, s)?)))
+                .map(move |(a, (b, _))| Ok(format!("{} {}", b.c(s)?, kp(&c, a, s)?)))
         })
         .chain(
             s.values()
@@ -49,7 +52,7 @@ pub fn cc<F: CCFunc>(s: &F) -> anyhow::Result<String> {
         {body}
     }}
     ",
-        s.entry().c(s)?
+        e.c(s)?
     ))
 }
 pub trait C<F: ?Sized> {
@@ -79,21 +82,22 @@ impl<
     > CCFunc for T
 {
 }
-pub fn render_target<C: CCFunc>(t: &impl Target<C>, c: &C) -> anyhow::Result<String> {
-    let args = t
+pub fn render_target<C: CCFunc>(t: &impl Target<C>, c: &C, prepend: impl Iterator<Item: crate::C<C>>) -> anyhow::Result<String> {
+    let args = prepend.map(|a|a.c(c)).chain(t
         .values(c)
+        .map(|v|v.c(c)))
         .enumerate()
         .map(|(i, v)| {
             let k = kp(&t.block(), i, c)?;
 
-            Ok(format!("{} = {}", k, v.c(c)?))
+            Ok(format!("{} = {}", k, v?))
         })
         .collect::<anyhow::Result<Vec<_>>>()?
         .join(";");
     Ok(format!("{args};goto BB{};", t.block().c(c)?))
 }
 pub trait COp<F: ?Sized> {
-    fn c(&self, args: &[impl C<F>], f: &F) -> anyhow::Result<String>;
+    fn c(&self, args: &[impl C<F>], blargs: &[impl C<F>], f: &F) -> anyhow::Result<String>;
 }
 #[cfg(feature = "id-arena")]
 impl<F: ?Sized, T> C<F> for id_arena::Id<T> {
@@ -106,18 +110,34 @@ impl<F: ?Sized, O: COp<F>, T, Y> C<F> for ssa_canon::Value<O, T, Y> {
     fn c(&self, f: &F) -> anyhow::Result<String> {
         use ssa_canon::Value;
         match self {
-            Value::Op(o, a, _) => o.c(&a, f),
+            Value::Op(o, a,q, _) => o.c(&a,&q, f),
             Value::Param(n, k, _) => kp(k, *n, f),
         }
     }
 }
 #[cfg(feature = "ssa-canon")]
-impl<O, T: Term<ssa_canon::Func<O, T, Y>, Target = ssa_canon::Target<O, T, Y>>, Y: Clone>
+impl<O: COp<ssa_canon::Func<O,T,Y>>, T: Term<ssa_canon::Func<O, T, Y>, Target = ssa_canon::Target<O, T, Y>>, Y: Clone>
     C<ssa_canon::Func<O, T, Y>> for ssa_canon::Target<O, T, Y>
 where
     ssa_canon::Func<O, T, Y>: CCFunc,
 {
     fn c(&self, f: &ssa_canon::Func<O, T, Y>) -> anyhow::Result<String> {
-        render_target(self, f)
+        render_target(self, f, empty::<ssa_canon::Value<O, T, Y>>())
+    }
+}
+impl<F, A: COp<F>, B: COp<F>> COp<F> for Either<A, B> {
+    fn c(&self, args: &[impl C<F>],blargs:&[impl C<F>], f: &F) -> anyhow::Result<String> {
+        match self {
+            Either::Left(a) => a.c(args, blargs,f),
+            Either::Right(a) => a.c(args, blargs,f),
+        }
+    }
+}
+impl<F, A: C<F>, B: C<F>> C<F> for Either<A, B> {
+    fn c(&self, f: &F) -> anyhow::Result<String> {
+        match self {
+            Either::Left(a) => a.c(f),
+            Either::Right(a) => a.c(f),
+        }
     }
 }

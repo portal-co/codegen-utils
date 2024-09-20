@@ -12,8 +12,9 @@
 //   TR-06-33870
 //   https://www.cs.rice.edu/~keith/EMBED/dom.pdf
 
-use std::collections::{BTreeMap, BTreeSet};
+use alloc::collections::{BTreeMap, BTreeSet};
 
+use alloc::vec::Vec;
 use ssa_traits::Func;
 
 use crate::preds;

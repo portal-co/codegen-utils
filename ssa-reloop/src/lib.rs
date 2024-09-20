@@ -7,7 +7,7 @@ use ssa_traits::Term;
 use ssa_traits::Target;
 // use waffle::{cfg::CFGInfo, Block, FunctionBody};
 
-pub fn go<F: Func<Block: RelooperLabel>>(b: &F) -> Box<ShapedBlock<F::Block>> {
+pub fn go<F: Func<Block: RelooperLabel>>(b: &F, k: F::Block) -> Box<ShapedBlock<F::Block>> {
     let cfg = ssa_impls::dom::domtree(b);
     // let reloop = std::panic::catch_unwind(|| {
         relooper::reloop(
@@ -26,7 +26,7 @@ pub fn go<F: Func<Block: RelooperLabel>>(b: &F) -> Box<ShapedBlock<F::Block>> {
                 // .chain(once((Block::invalid(), vec![b.entry])))
                 .collect(),
             // Block::invalid(),
-            b.entry(),
+            k,
         )
     // });
     // let reloop = match reloop {

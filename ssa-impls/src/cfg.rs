@@ -1,5 +1,5 @@
-use std::collections::{BTreeMap, BTreeSet};
-
+use alloc::{collections::{BTreeMap, BTreeSet}, vec::Vec};
+use alloc::vec;
 use ssa_traits::{Block, Func, Target, Term};
 
 pub fn calculate_postorder<

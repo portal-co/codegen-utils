@@ -1,0 +1,9 @@
+[package]
+name = "sift-trait"
+version = "0.1.0"
+edition = "2021"
+license = "CC0-1.0"
+description = "Sift a value out of another"
+
+[dependencies]
+either = "1.13.0"

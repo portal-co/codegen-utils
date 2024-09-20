@@ -1,7 +1,10 @@
 use arena_traits::Arena;
 use ssa_traits::{Block, HasValues, Target, Term, TypedBlock, TypedFunc};
-use std::{
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
+use alloc::{
+    collections::{BTreeMap, BTreeSet,  VecDeque}, vec::Vec,
+};
+use alloc::vec;
+use core::{
     hash::Hash,
     ops::Index,
 };
@@ -155,7 +158,7 @@ impl<F: RedFunc> Reducifier<F> {
                 {
                     // eprintln!("  successor {} has header {}", succ, succ_header);
                     if succ_header != succ && !headers.contains(succ_header) {
-                        eprintln!("    -> irreducible edge");
+                        // eprintln!("    -> irreducible edge");
                         irreducible_headers.insert(succ_header.clone());
                     }
                 }
@@ -182,7 +185,7 @@ impl<F: RedFunc> Reducifier<F> {
 
         // First do limited conversion to max-SSA to fix up references
         // across contexts.
-        // let mut cut_blocks = HashSet::default();
+        // let mut cut_blocks = BTreeSet::default();
         // for (block, data) in body.blocks().iter().map(|a|(a.clone(),&body.blocks()[a]))  {
         //     for &succ in &data.succs {
         //         // Loop exits
@@ -215,20 +218,20 @@ impl<F: RedFunc> Reducifier<F> {
         // Implicitly, context {} has an identity-map from old block
         // number to new block number. We use the map only for
         // non-empty contexts.
-        let mut context_map: HashMap<Vec<F::Block>, usize> = HashMap::default();
+        let mut context_map: BTreeMap<Vec<F::Block>, usize> = BTreeMap::default();
         let mut contexts: Vec<Vec<F::Block>> = vec![vec![]];
         context_map.insert(vec![], 0);
-        let mut block_map: HashMap<(usize, F::Block), F::Block> = HashMap::default();
-        let mut value_map: HashMap<(usize, F::Value), F::Value> = HashMap::default();
+        let mut block_map: BTreeMap<(usize, F::Block), F::Block> = BTreeMap::default();
+        let mut value_map: BTreeMap<(usize, F::Value), F::Value> = BTreeMap::default();
 
         // List of (ctx, new block) tuples for duplicated code.
         let mut cloned_blocks: Vec<(usize, F::Block)> = vec![];
         // Map from block in new body to (ctx, orig block) target, to
         // allow updating terminators.
-        let mut terminators: HashMap<F::Block, Vec<(usize, F::Block)>> = HashMap::default();
+        let mut terminators: BTreeMap<F::Block, Vec<(usize, F::Block)>> = BTreeMap::default();
 
         let mut queue: VecDeque<(usize, F::Block)> = VecDeque::new();
-        let mut visited: HashSet<(usize, F::Block)> = HashSet::default();
+        let mut visited: BTreeSet<(usize, F::Block)> = BTreeSet::default();
         queue.push_back((0, new_body.entry()));
         visited.insert((0, new_body.entry()));
         while let Some((ctx, block)) = queue.pop_front() {

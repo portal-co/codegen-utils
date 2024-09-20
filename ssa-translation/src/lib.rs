@@ -1,12 +1,35 @@
-use std::{
-    collections::BTreeMap,
+#![no_std]
+extern crate alloc;
+
+use core::{
     ops::{Index, IndexMut},
 };
+use  alloc::{
+    collections::BTreeMap, vec,
+};
+
 
 use arena_traits::Arena;
 use ssa_traits::TypedBlock;
 use ssa_traits::{Block, Func, TypedFunc};
+use valser::{AnyKind, ValSer};
 
+pub mod ai;
+
+pub trait EqIter: IntoIterator + FromIterator<Self::Item> {}
+impl<T: IntoIterator + FromIterator<Self::Item>> EqIter for T {}
+
+pub trait CarryTranslator<F: TypedFunc, G: Func>:
+    Translator<F, G, Meta: ValSer<G::Value>, Instance: EqIter<Item = (F::Ty, <Self::Meta as ValSer<G::Value>>::Kind)>>
+{
+}
+impl<
+        F: TypedFunc,
+        G: Func,
+        X: Translator<F, G, Meta: ValSer<G::Value>, Instance: EqIter<Item = (F::Ty, <Self::Meta as ValSer<G::Value>>::Kind)>>,
+    > CarryTranslator<F, G> for X
+{
+}
 pub trait Translator<F: TypedFunc, G: Func> {
     type Meta;
     type Instance;
@@ -17,6 +40,7 @@ pub trait Translator<F: TypedFunc, G: Func> {
         f: &F,
         k: G::Block,
         p: F::Ty,
+        i2: usize,
     ) -> anyhow::Result<(Self::Meta, G::Block)>;
     fn emit_val<T: AsMut<Self>>(
         ctx: &mut T,
@@ -77,9 +101,9 @@ impl<
             self.in_map.insert((b.clone(), i.clone()), v.clone());
             let mut vals = BTreeMap::new();
             let mut params = vec![];
-            for (fp,_) in f.blocks()[b.clone()].params() {
+            for (i2,(fp, _)) in f.blocks()[b.clone()].params().enumerate() {
                 let val;
-                (val, v) = self.wrapped.add_blockparam(&mut i, g, f, v.clone(), fp)?;
+                (val, v) = self.wrapped.add_blockparam(&mut i, g, f, v.clone(), fp,i2)?;
                 params.push(val);
             }
             for val2 in f.blocks()[b.clone()].insts() {

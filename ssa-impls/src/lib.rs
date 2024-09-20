@@ -1,5 +1,8 @@
-use std::collections::BTreeSet;
+// use std::collections::BTreeSet;
+#![no_std]
+extern crate alloc;
 
+use alloc::vec::Vec;
 use arena_traits::Arena;
 use ssa_traits::{Block, Func, Target, Term, TypedBlock, TypedFunc};
 pub mod cfg;

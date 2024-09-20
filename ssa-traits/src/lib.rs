@@ -1,4 +1,10 @@
-use std::{collections::BTreeMap, iter::once};
+#![no_std]
+
+use core::{iter::once, ops::Index};
+
+extern crate alloc;
+use alloc::vec;
+use alloc::vec::Vec;
 
 use arena_traits::Arena;
 use either::Either;
@@ -14,6 +20,10 @@ pub trait Func {
     fn blocks_mut(&mut self) -> &mut Self::Blocks;
     fn entry(&self) -> Self::Block;
 }
+pub type ValueI<F> = <<F as Func>::Values as Index<<F as Func>::Value>>::Output;
+pub type BlockI<F> = <<F as Func>::Blocks as Index<<F as Func>::Block>>::Output;
+pub type TermI<F> = <BlockI<F> as Block<F>>::Terminator;
+pub type TargetI<F> = <TermI<F> as Term<F>>::Target;
 
 #[repr(transparent)]
 pub struct Val<F: Func + ?Sized>(pub F::Value);
@@ -49,8 +59,40 @@ impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Val<F> {
         once(&mut self.0)
     }
 }
+impl<F: Func<Value: Clone> + ?Sized> HasValues<F> for Vec<F::Value> {
+    fn values(&self, f: &F) -> impl Iterator<Item = <F as Func>::Value> {
+        self.iter().cloned()
+    }
+
+    fn values_mut<'a>(
+        &'a mut self,
+        g: &'a mut F,
+    ) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    where
+        F: 'a,
+    {
+        self.iter_mut()
+    }
+}
+impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Vec<F::Value> {
+    fn values_chain(&self) -> impl Iterator<Item = <F as Func>::Value> {
+        self.iter().cloned()
+    }
+
+    fn values_chain_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    where
+        F: 'a,
+    {
+        self.iter_mut()
+    }
+}
 pub struct BuildFn<F> {
     pub func: F,
+}
+pub fn build_fn<F: FnOnce(&mut G, G::Block) -> anyhow::Result<(R, G::Block)>, G: Func, R>(
+    f: F,
+) -> BuildFn<F> {
+    BuildFn { func: f }
 }
 pub trait Builder<F: Func> {
     type Result;

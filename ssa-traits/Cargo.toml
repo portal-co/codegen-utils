@@ -6,6 +6,9 @@ license = "CC0-1.0"
 description = "Traits for SSA IR"
 
 [dependencies]
-anyhow = "1.0"
+anyhow = {version="1.0",default-features=false}
 arena-traits = { version = "0.1.0", path = "../arena-traits" }
-either = "1.13.0"
+either = {version="1.13.0",default-features=false}
+
+[features]
+std = ["anyhow/std"]

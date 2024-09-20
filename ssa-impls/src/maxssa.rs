@@ -1,8 +1,8 @@
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use alloc::{collections::{BTreeMap, BTreeSet}, vec::Vec};
 
 use arena_traits::Arena;
 use ssa_traits::{Block, Func, HasValues, Target, Term, TypedFunc, TypedValue, Value};
-use std::hash::Hash;
+use core::hash::Hash;
 
 use crate::preds;
 
@@ -29,7 +29,7 @@ struct MaxSSAPass<F: Func<Block: Ord + Hash + Clone, Value: Hash + Clone>> {
     new_args: BTreeMap<F::Block, Vec<F::Value>>,
     /// For each block, a value map: from original value to local copy
     /// of value.
-    value_map: HashMap<(F::Block, F::Value), F::Value>,
+    value_map: BTreeMap<(F::Block, F::Value), F::Value>,
 }
 
 impl<
@@ -44,7 +44,7 @@ impl<
     fn new() -> Self {
         Self {
             new_args: BTreeMap::new(),
-            value_map: HashMap::new(),
+            value_map: BTreeMap::new(),
         }
     }
 

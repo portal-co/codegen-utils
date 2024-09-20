@@ -1,4 +1,5 @@
-use std::ops::IndexMut;
+#[no_std]
+use core::ops::IndexMut;
 
 pub trait Arena<Idx>: IndexMut<Idx>{
     fn alloc(&mut self, a: Self::Output) -> Idx;
