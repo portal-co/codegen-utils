@@ -1,6 +1,6 @@
 [package]
 name = "arena-traits"
-version = "0.1.2"
+version = "0.1.4"
 edition = "2021"
 license = "CC0-1.0"
 description = "Traits for arenas"

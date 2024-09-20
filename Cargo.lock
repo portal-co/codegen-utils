@@ -10,7 +10,7 @@ checksum = "10f00e1f6e58a40e807377c75c6a7f97bf9044fab57816f2414e6f5f4499d7b8"
 
 [[package]]
 name = "arena-traits"
-version = "0.1.2"
+version = "0.1.4"
 dependencies = [
  "id-arena",
 ]
@@ -132,14 +132,14 @@ dependencies = [
 
 [[package]]
 name = "sift-trait"
-version = "0.1.0"
+version = "0.1.4"
 dependencies = [
  "either",
 ]
 
 [[package]]
 name = "ssa-canon"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -150,7 +150,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-cc"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -162,7 +162,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-impls"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "arena-traits",
  "ssa-traits",
@@ -170,7 +170,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-reloop"
-version = "0.1.2"
+version = "0.1.4"
 dependencies = [
  "arena-traits",
  "relooper",
@@ -180,7 +180,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-rust"
-version = "0.1.0"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -198,7 +198,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-traits"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -207,7 +207,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-translation"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "arena-traits",
