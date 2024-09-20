@@ -1,4 +1,4 @@
-use std::convert::Infallible;
+#![no_std]
 
 use either::Either;
 
