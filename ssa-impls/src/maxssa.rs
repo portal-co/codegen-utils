@@ -2,6 +2,7 @@ use alloc::{collections::{BTreeMap, BTreeSet}, vec::Vec};
 
 use arena_traits::Arena;
 use ssa_traits::{Block, Func, HasValues, Target, Term, TypedFunc, TypedValue, Value};
+use cfg_traits::{Block as CFGBlock, Func as CFGFunc, Target as CFGTarget, Term as CFGTerm};
 use core::hash::Hash;
 
 use crate::preds;
@@ -62,7 +63,7 @@ impl<
         // processing (and to appease the borrow checker).
         let mut uses = BTreeSet::default();
         for inst in body.blocks()[block.clone()].insts() {
-            for w in body.values()[inst].values(body) {
+            for w in <F as Func>::values(&*body)[inst].values(body) {
                 uses.insert(w);
             }
         }
@@ -95,7 +96,7 @@ impl<
             .push(value.clone());
 
         // Create a placeholder value.
-        let ty = body.values()[value.clone()].ty(body);
+        let ty = <F as Func>::values(&*body)[value.clone()].ty(body);
         let blockparam = body.add_blockparam(block.clone(), ty);
         self.value_map
             .insert((block.clone(), value.clone()), blockparam);
@@ -146,7 +147,7 @@ impl<
 
         for inst in body.blocks()[block.clone()].insts().collect::<Vec<_>>() {
             // let inst = body.blocks()[block].insts[i];
-            let mut def = body.values()[inst.clone()].clone();
+            let mut def = <F as Func>::values(&*body)[inst.clone()].clone();
 
             for a in def.values_mut(body) {
                 *a = resolve(a.clone());

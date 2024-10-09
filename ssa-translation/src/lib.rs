@@ -12,6 +12,7 @@ use  alloc::{
 use arena_traits::Arena;
 use ssa_traits::TypedBlock;
 use ssa_traits::{Block, Func, TypedFunc};
+use cfg_traits::{Block as CFGBlock};
 use valser::{AnyKind, ValSer};
 
 pub mod ai;
@@ -62,7 +63,7 @@ pub trait Translator<F: TypedFunc, G: Func> {
         map: &BTreeMap<F::Value, Self::Meta>,
         params: &[Self::Meta],
         go: impl FnMut(&mut T, &mut G, &F, F::Block, Self::Instance) -> anyhow::Result<G::Block>,
-        val: &<<F::Blocks as Index<F::Block>>::Output as Block<F>>::Terminator,
+        val: &<<F::Blocks as Index<F::Block>>::Output as CFGBlock<F>>::Terminator,
     ) -> anyhow::Result<()>;
 }
 pub struct State<F: TypedFunc, G: Func, T: Translator<F, G>> {

@@ -1,10 +1,12 @@
 use arena_traits::Arena;
 use relooper::{RelooperLabel, ShapedBlock};
 use ssa_impls::dom::dominates;
-use ssa_traits::Func;
-use ssa_traits::Block;
-use ssa_traits::Term;
-use ssa_traits::Target;
+use cfg_traits::Func;
+// use ssa_traits::Block;
+use cfg_traits::Block;
+// use ssa_traits::Term;
+use cfg_traits::Term;
+use cfg_traits::Target;
 // use waffle::{cfg::CFGInfo, Block, FunctionBody};
 
 pub fn go<F: Func<Block: RelooperLabel>>(b: &F, k: F::Block) -> Box<ShapedBlock<F::Block>> {

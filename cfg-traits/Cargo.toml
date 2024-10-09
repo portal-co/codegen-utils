@@ -1,0 +1,10 @@
+[package]
+name = "cfg-traits"
+version = "0.1.0"
+edition = "2021"
+license = "CC0-1.0"
+description = "Traits for Control Flow Graphs"
+
+[dependencies]
+arena-traits = { version = "0.1.4", path = "../arena-traits" }
+either = "1.13.0"

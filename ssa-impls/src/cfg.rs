@@ -1,6 +1,6 @@
 use alloc::{collections::{BTreeMap, BTreeSet}, vec::Vec};
 use alloc::vec;
-use ssa_traits::{Block, Func, Target, Term};
+use cfg_traits::{Block, Func, Target, Term};
 
 pub fn calculate_postorder<
     F: Func<Block: Ord + Clone>,

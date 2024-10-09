@@ -4,6 +4,7 @@ use std::iter::once;
 use id_arena::{Arena, Id};
 use sift_trait::Sift;
 use ssa_traits::{op::OpValue, Term};
+use cfg_traits::{Term as CFGTerm};
 
 pub enum Value<O, T, Y> {
     Op(O, Vec<Id<Value<O, T, Y>>>, Vec<Id<Block<O, T, Y>>>, Y),
@@ -23,28 +24,24 @@ pub struct Func<O, T, Y> {
     pub blocks: Arena<Block<O, T, Y>>,
     pub entry: Id<Block<O, T, Y>>,
 }
-impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::Func
+impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::Func
     for Func<O, T, Y>
 {
-    type Value = Id<Value<O, T, Y>>;
+
 
     type Block = Id<Block<O, T, Y>>;
 
-    type Values = Arena<Value<O, T, Y>>;
+
 
     type Blocks = Arena<Block<O, T, Y>>;
 
-    fn values(&self) -> &Self::Values {
-        &self.vals
-    }
+
 
     fn blocks(&self) -> &Self::Blocks {
         &self.blocks
     }
 
-    fn values_mut(&mut self) -> &mut Self::Values {
-        &mut self.vals
-    }
+
 
     fn blocks_mut(&mut self) -> &mut Self::Blocks {
         &mut self.blocks
@@ -53,6 +50,29 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::
     fn entry(&self) -> Self::Block {
         self.entry
     }
+}
+impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::Func
+    for Func<O, T, Y>
+{
+    type Value = Id<Value<O, T, Y>>;
+
+
+
+    type Values = Arena<Value<O, T, Y>>;
+
+
+
+    fn values(&self) -> &Self::Values {
+        &self.vals
+    }
+
+
+
+    fn values_mut(&mut self) -> &mut Self::Values {
+        &mut self.vals
+    }
+
+
 }
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::TypedFunc
     for Func<O, T, Y>
@@ -118,20 +138,10 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     }
 }
 
-impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::Block<Func<O, T, Y>>
+impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::Block<Func<O, T, Y>>
     for Block<O, T, Y>
 {
-    fn insts(&self) -> impl Iterator<Item = <Func<O, T, Y> as ssa_traits::Func>::Value> {
-        self.insts.iter().cloned()
-    }
 
-    fn add_inst(
-        func: &mut Func<O, T, Y>,
-        key: <Func<O, T, Y> as ssa_traits::Func>::Block,
-        v: <Func<O, T, Y> as ssa_traits::Func>::Value,
-    ) {
-        func.blocks[key].insts.push(v);
-    }
 
     type Terminator = T;
 
@@ -143,6 +153,24 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::
         &mut self.term
     }
 }
+
+impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::Block<Func<O, T, Y>>
+    for Block<O, T, Y>
+{
+    fn insts(&self) -> impl Iterator<Item = <Func<O, T, Y> as ssa_traits::Func>::Value> {
+        self.insts.iter().cloned()
+    }
+
+    fn add_inst(
+        func: &mut Func<O, T, Y>,
+        key: <Func<O, T, Y> as cfg_traits::Func>::Block,
+        v: <Func<O, T, Y> as ssa_traits::Func>::Value,
+    ) {
+        func.blocks[key].insts.push(v);
+    }
+
+}
+
 
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     ssa_traits::TypedBlock<Func<O, T, Y>> for Block<O, T, Y>
@@ -178,7 +206,7 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
         self.args.iter_mut()
     }
 }
-impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::Term<Func<O, T, Y>>
+impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::Term<Func<O, T, Y>>
     for Target<O, T, Y>
 {
     type Target = Self;
@@ -198,15 +226,20 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::
     }
 }
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
-    ssa_traits::Target<Func<O, T, Y>> for Target<O, T, Y>
+    cfg_traits::Target<Func<O, T, Y>> for Target<O, T, Y>
 {
-    fn block(&self) -> <Func<O, T, Y> as ssa_traits::Func>::Block {
+    fn block(&self) -> <Func<O, T, Y> as cfg_traits::Func>::Block {
         self.block
     }
 
-    fn block_mut(&mut self) -> &mut <Func<O, T, Y> as ssa_traits::Func>::Block {
+    fn block_mut(&mut self) -> &mut <Func<O, T, Y> as cfg_traits::Func>::Block {
         &mut self.block
     }
+
+}
+impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
+    ssa_traits::Target<Func<O, T, Y>> for Target<O, T, Y>
+{
 
     fn push_value(&mut self, v: <Func<O, T, Y> as ssa_traits::Func>::Value) {
         self.args.push(v);
@@ -214,7 +247,7 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
 
     fn from_values_and_block(
         a: impl Iterator<Item = <Func<O, T, Y> as ssa_traits::Func>::Value>,
-        k: <Func<O, T, Y> as ssa_traits::Func>::Block,
+        k: <Func<O, T, Y> as cfg_traits::Func>::Block,
     ) -> Self {
         Target {
             args: a.collect(),

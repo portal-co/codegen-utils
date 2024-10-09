@@ -9,21 +9,16 @@ use alloc::vec::Vec;
 use arena_traits::Arena;
 use either::Either;
 pub mod op;
-pub trait Func {
+pub trait Func : cfg_traits::Func<Blocks: Arena<Self::Block,Output: Block<Self>>>{
     type Value;
-    type Block;
     type Values: Arena<Self::Value, Output: Value<Self>>;
-    type Blocks: Arena<Self::Block, Output: Block<Self>>;
     fn values(&self) -> &Self::Values;
-    fn blocks(&self) -> &Self::Blocks;
     fn values_mut(&mut self) -> &mut Self::Values;
-    fn blocks_mut(&mut self) -> &mut Self::Blocks;
-    fn entry(&self) -> Self::Block;
 }
 pub type ValueI<F> = <<F as Func>::Values as Index<<F as Func>::Value>>::Output;
-pub type BlockI<F> = <<F as Func>::Blocks as Index<<F as Func>::Block>>::Output;
-pub type TermI<F> = <BlockI<F> as Block<F>>::Terminator;
-pub type TargetI<F> = <TermI<F> as Term<F>>::Target;
+pub type BlockI<F> = <<F as cfg_traits::Func>::Blocks as Index<<F as cfg_traits::Func>::Block>>::Output;
+pub type TermI<F> = <BlockI<F> as cfg_traits::Block<F>>::Terminator;
+pub type TargetI<F> = <TermI<F> as cfg_traits::Term<F>>::Target;
 
 #[repr(transparent)]
 pub struct Val<F: Func + ?Sized>(pub F::Value);
@@ -104,8 +99,8 @@ impl<F: Func, B: Builder<F>> Builder<F> for anyhow::Result<B> {
     fn build(
         self,
         f: &mut F,
-        k: <F as Func>::Block,
-    ) -> anyhow::Result<(Self::Result, <F as Func>::Block)> {
+        k: <F as cfg_traits::Func>::Block,
+    ) -> anyhow::Result<(Self::Result, <F as cfg_traits::Func>::Block)> {
         self?.build(f, k)
     }
 }
@@ -115,17 +110,14 @@ impl<F: FnOnce(&mut G, G::Block) -> anyhow::Result<(R, G::Block)>, G: Func, R> B
     fn build(
         self,
         f: &mut G,
-        k: <G as Func>::Block,
-    ) -> anyhow::Result<(Self::Result, <G as Func>::Block)> {
+        k: <G as cfg_traits::Func>::Block,
+    ) -> anyhow::Result<(Self::Result, <G as cfg_traits::Func>::Block)> {
         self(f, k)
     }
 }
-pub trait Block<F: Func<Blocks: Arena<F::Block, Output = Self>> + ?Sized> {
+pub trait Block<F: Func<Blocks: Arena<F::Block, Output = Self>> + ?Sized>: cfg_traits::Block<F, Terminator: Term<F>> {
     fn insts(&self) -> impl Iterator<Item = F::Value>;
     fn add_inst(func: &mut F, key: F::Block, v: F::Value);
-    type Terminator: Term<F>;
-    fn term(&self) -> &Self::Terminator;
-    fn term_mut(&mut self) -> &mut Self::Terminator;
 }
 pub trait Value<F: Func<Values: Arena<F::Value, Output = Self>> + ?Sized>: HasValues<F> {}
 
@@ -205,43 +197,13 @@ impl<F: Func + ?Sized, A: HasChainableValues<F>, B: HasChainableValues<F>> HasCh
         }
     }
 }
-pub trait Target<F: Func + ?Sized>: Term<F, Target = Self> {
-    fn block(&self) -> F::Block;
-    fn block_mut(&mut self) -> &mut F::Block;
+pub trait Target<F: Func + ?Sized>: HasValues<F> + cfg_traits::Target<F> {
     fn push_value(&mut self, v: F::Value);
     fn from_values_and_block(a: impl Iterator<Item = F::Value>, k: F::Block) -> Self;
 }
-pub trait Term<F: Func + ?Sized>: HasValues<F> {
-    type Target: Target<F>;
-    fn targets<'a>(&'a self) -> impl Iterator<Item = &'a Self::Target>
-    where
-        F: 'a;
-    fn targets_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut Self::Target>
-    where
-        F: 'a;
+pub trait Term<F: Func + ?Sized>: HasValues<F> + cfg_traits::Term<F, Target: Target<F>> {
+
 }
-impl<F: Func + ?Sized, T: Target<F>, A: Term<F, Target = T>, B: Term<F, Target = T>> Term<F>
-    for Either<A, B>
-{
-    type Target = T;
+impl<F: Func + ?Sized,T: HasValues<F> + cfg_traits::Term<F, Target: Target<F>>> Term<F> for T{
 
-    fn targets<'a>(&'a self) -> impl Iterator<Item = &'a Self::Target>
-    where
-        F: 'a,
-    {
-        match self {
-            Either::Left(a) => Either::Left(a.targets()),
-            Either::Right(b) => Either::Right(b.targets()),
-        }
-    }
-
-    fn targets_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut Self::Target>
-    where
-        F: 'a,
-    {
-        match self {
-            Either::Left(a) => Either::Left(a.targets_mut()),
-            Either::Right(b) => Either::Right(b.targets_mut()),
-        }
-    }
 }

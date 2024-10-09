@@ -2,7 +2,8 @@ use core::ops::ControlFlow;
 
 use alloc::vec::{Vec};
 use alloc::vec;
-use ssa_traits::{Target, Term, TypedFunc, TypedValue};
+use ssa_traits::{HasValues, Target, Term, TypedFunc, TypedValue};
+use cfg_traits::{Target as CFGTarget, Term as CFGTerm};
 use valser::{AnyKind, ValSer};
 
 use crate::Translator;
@@ -19,7 +20,7 @@ pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
         i: &mut Vec<(F::Ty, Self::Kind)>,
         g: &mut G,
         f: &F,
-        k: <G as ssa_traits::Func>::Block,
+        k: <G as cfg_traits::Func>::Block,
         map: &alloc::collections::BTreeMap<<F>::Value, <Self::Kind as AnyKind>::Value<G::Value>>,
         params: &[<Self::Kind as AnyKind>::Value<G::Value>],
         go: impl FnMut(
@@ -28,11 +29,11 @@ pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
             &F,
             <F>::Block,
             Vec<(F::Ty, Self::Kind)>,
-        ) -> anyhow::Result<<G as ssa_traits::Func>::Block>,
+        ) -> anyhow::Result<<G as cfg_traits::Func>::Block>,
         val: &<<F>::Values as core::ops::Index<<F>::Value>>::Output,
     ) -> anyhow::Result<(
         <Self::Kind as AnyKind>::Value<G::Value>,
-        <G as ssa_traits::Func>::Block,
+        <G as cfg_traits::Func>::Block,
     )>;
 
     fn emit_term<T: AsMut<AI<Self>>>(
@@ -40,7 +41,7 @@ pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
         i: &mut Vec<(F::Ty, Self::Kind)>,
         g: &mut G,
         f: &F,
-        k: <G as ssa_traits::Func>::Block,
+        k: <G as cfg_traits::Func>::Block,
         map: &alloc::collections::BTreeMap<<F>::Value, <Self::Kind as AnyKind>::Value<G::Value>>,
         params: &[<Self::Kind as AnyKind>::Value<G::Value>],
         go: impl FnMut(
@@ -49,8 +50,8 @@ pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
             &F,
             <F>::Block,
             Vec<(F::Ty, Self::Kind)>,
-        ) -> anyhow::Result<<G as ssa_traits::Func>::Block>,
-        val: &<<<F>::Blocks as core::ops::Index<<F>::Block>>::Output as ssa_traits::Block<F>>::Terminator,
+        ) -> anyhow::Result<<G as cfg_traits::Func>::Block>,
+        val: &<<<F>::Blocks as core::ops::Index<<F>::Block>>::Output as cfg_traits::Block<F>>::Terminator,
     ) -> anyhow::Result<()>;
 
     fn emit_target<T: AsMut<AI<Self>>, Gt: Target<G>>(
@@ -58,7 +59,7 @@ pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
         i: &mut Vec<(F::Ty, Self::Kind)>,
         g: &mut G,
         f: &F,
-        k: <G as ssa_traits::Func>::Block,
+        k: <G as cfg_traits::Func>::Block,
         map: &alloc::collections::BTreeMap<<F>::Value, <Self::Kind as AnyKind>::Value<G::Value>>,
         params: &[<Self::Kind as AnyKind>::Value<G::Value>],
         mut go: impl FnMut(
@@ -67,11 +68,10 @@ pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
             &F,
             <F>::Block,
             Vec<(F::Ty, Self::Kind)>,
-        ) -> anyhow::Result<<G as ssa_traits::Func>::Block>,
+        ) -> anyhow::Result<<G as cfg_traits::Func>::Block>,
         val: &impl Target<F>,
     ) -> anyhow::Result<Gt> {
-        let v: Vec<<Self::Kind as AnyKind>::Value<G::Value>> = val
-            .values(f)
+        let v: Vec<<Self::Kind as AnyKind>::Value<G::Value>> = HasValues::values(val, f)
             .filter_map(|v| map.get(&v))
             .cloned()
             .collect::<Vec<_>>();
@@ -87,7 +87,7 @@ pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
                     &mut a
                         .iter()
                         .cloned()
-                        .map(|x| g.values()[x].ty(g))
+                        .map(|x| <G as Func>::values(g)[x].ty(g))
                         .map(ControlFlow::Continue),
                 )
             else {
@@ -117,10 +117,10 @@ impl<
         i: &mut Self::Instance,
         g: &mut G,
         f: &F,
-        k: <G as ssa_traits::Func>::Block,
+        k: <G as cfg_traits::Func>::Block,
         p: <F as TypedFunc>::Ty,
         i2: usize,
-    ) -> anyhow::Result<(Self::Meta, <G as ssa_traits::Func>::Block)> {
+    ) -> anyhow::Result<(Self::Meta, <G as cfg_traits::Func>::Block)> {
         i[i2].0 = p.clone();
         let v = self.handler.stamp(p, i[i2].1.clone())?;
         let (a, b) = v.to_values();
@@ -139,7 +139,7 @@ impl<
         i: &mut Self::Instance,
         g: &mut G,
         f: &F,
-        k: <G as ssa_traits::Func>::Block,
+        k: <G as cfg_traits::Func>::Block,
         map: &alloc::collections::BTreeMap<<F>::Value, Self::Meta>,
         params: &[Self::Meta],
         go: impl FnMut(
@@ -148,9 +148,9 @@ impl<
             &F,
             <F>::Block,
             Self::Instance,
-        ) -> anyhow::Result<<G as ssa_traits::Func>::Block>,
+        ) -> anyhow::Result<<G as cfg_traits::Func>::Block>,
         val: &<<F>::Values as core::ops::Index<<F>::Value>>::Output,
-    ) -> anyhow::Result<(Self::Meta, <G as ssa_traits::Func>::Block)> {
+    ) -> anyhow::Result<(Self::Meta, <G as cfg_traits::Func>::Block)> {
         H::emit_val(ctx, i, g, f, k, map, params, go, val)
     }
 
@@ -159,7 +159,7 @@ impl<
         i: &mut Self::Instance,
         g: &mut G,
         f: &F,
-        k: <G as ssa_traits::Func>::Block,
+        k: <G as cfg_traits::Func>::Block,
         map: &alloc::collections::BTreeMap<<F>::Value, Self::Meta>,
         params: &[Self::Meta],
         go: impl FnMut(
@@ -168,7 +168,7 @@ impl<
             &F,
             <F>::Block,
             Self::Instance,
-        ) -> anyhow::Result<<G as ssa_traits::Func>::Block>,
+        ) -> anyhow::Result<<G as cfg_traits::Func>::Block>,
         val: &<<<F>::Blocks as core::ops::Index<<F>::Block>>::Output as ssa_traits::Block<F>>::Terminator,
     ) -> anyhow::Result<()> {
         H::emit_term(ctx, i, g, f, k, map, params, go, val)

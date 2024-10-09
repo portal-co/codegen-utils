@@ -8,6 +8,7 @@ description = "Traits for SSA IR"
 [dependencies]
 anyhow = {version="1.0",default-features=false}
 arena-traits = { version = "0.1.0", path = "../arena-traits" }
+cfg-traits = { version = "0.1.0", path = "../cfg-traits" }
 either = {version="1.13.0",default-features=false}
 
 [features]

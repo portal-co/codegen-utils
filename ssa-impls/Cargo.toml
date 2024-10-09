@@ -7,4 +7,5 @@ description = "Implementation of common SSA algorithms"
 
 [dependencies]
 arena-traits = { version = "0.1.0", path = "../arena-traits" }
+cfg-traits = { version = "0.1.0", path = "../cfg-traits" }
 ssa-traits = { version = "0.1.0", path = "../ssa-traits" }

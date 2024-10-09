@@ -4,12 +4,13 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use arena_traits::Arena;
-use ssa_traits::{Block, Func, Target, Term, TypedBlock, TypedFunc};
+use ssa_traits::{Func, TypedBlock, TypedFunc, Target as SSATarget};
+use cfg_traits::{Block,Term,Target};
 pub mod cfg;
 pub mod dom;
 pub mod maxssa;
 pub mod reducify;
-pub fn preds<F: Func<Block: Clone + Eq>>(
+pub fn preds<F: cfg_traits::Func<Block: Clone + Eq>>(
     f: &F,
     k: F::Block,
 ) -> impl Iterator<Item = F::Block> + '_ {

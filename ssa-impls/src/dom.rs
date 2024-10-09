@@ -15,7 +15,7 @@
 use alloc::collections::{BTreeMap, BTreeSet};
 
 use alloc::vec::Vec;
-use ssa_traits::Func;
+use cfg_traits::Func;
 
 use crate::preds;
 

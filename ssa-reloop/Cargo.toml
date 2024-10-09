@@ -7,6 +7,7 @@ description = "Relooper tool for SSA IR"
 
 [dependencies]
 arena-traits = { version = "0.1.0", path = "../arena-traits" }
+cfg-traits = { version = "0.1.0", path = "../cfg-traits" }
 relooper = "0.1.0"
 ssa-impls = { version = "0.1.0", path = "../ssa-impls" }
 ssa-traits = { version = "0.1.0", path = "../ssa-traits" }

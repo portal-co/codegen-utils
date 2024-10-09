@@ -1,5 +1,6 @@
 use arena_traits::Arena;
 use ssa_traits::{Block, HasValues, Target, Term, TypedBlock, TypedFunc};
+use cfg_traits::{Block as CFGBlock, Func as CFGFunc, Target as CFGTarget, Term as CFGTerm};
 use alloc::{
     collections::{BTreeMap, BTreeSet,  VecDeque}, vec::Vec,
 };
@@ -262,7 +263,7 @@ impl<F: RedFunc> Reducifier<F> {
                 // args yet -- we'll do a separate pass for that.
                 let insts = new_body.blocks()[block.clone()].insts().collect::<Vec<_>>();
                 for value in insts {
-                    let def = new_body.values()[value.clone()].clone();
+                    let def = <F as ssa_traits::Func>::values(&new_body)[value.clone()].clone();
                     let new_value = new_body.values_mut().alloc(def);
                     value_map.insert((ctx, value.clone()), new_value.clone());
                     <<F::Blocks as Index<F::Block>>::Output as Block<F>>::add_inst(

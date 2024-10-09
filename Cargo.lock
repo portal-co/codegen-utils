@@ -22,6 +22,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c4b4d0bd25bd0b74681c0ad21497610ce1b7c91b1022cd21c80c6fbdd9476b0"
 
 [[package]]
+name = "cfg-traits"
+version = "0.1.0"
+dependencies = [
+ "arena-traits",
+ "either",
+]
+
+[[package]]
 name = "either"
 version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -143,6 +151,7 @@ version = "0.1.4"
 dependencies = [
  "anyhow",
  "arena-traits",
+ "cfg-traits",
  "id-arena",
  "sift-trait",
  "ssa-traits",
@@ -165,6 +174,7 @@ name = "ssa-impls"
 version = "0.1.4"
 dependencies = [
  "arena-traits",
+ "cfg-traits",
  "ssa-traits",
 ]
 
@@ -173,6 +183,7 @@ name = "ssa-reloop"
 version = "0.1.4"
 dependencies = [
  "arena-traits",
+ "cfg-traits",
  "relooper",
  "ssa-impls",
  "ssa-traits",
@@ -202,6 +213,7 @@ version = "0.1.4"
 dependencies = [
  "anyhow",
  "arena-traits",
+ "cfg-traits",
  "either",
 ]
 
@@ -211,6 +223,7 @@ version = "0.1.4"
 dependencies = [
  "anyhow",
  "arena-traits",
+ "cfg-traits",
  "either",
  "ssa-traits",
  "valser",
