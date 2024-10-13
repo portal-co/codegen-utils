@@ -7,6 +7,7 @@ use quasiquote::quasiquote;
 use quote::{format_ident, quote};
 use relooper::{BranchMode, RelooperLabel, ShapedBlock};
 use ssa_traits::{Block, Target, Term, TypedBlock, TypedFunc, TypedValue};
+use cfg_traits::{Block as CFGBlock, Target as CFGTarget, Term as CFGTerm};
 use syn::{Ident, Lifetime};
 fn term(b: &BranchMode) -> TokenStream {
     match b {
@@ -274,7 +275,7 @@ where
         &self,
         f: &ssa_canon::Func<O, T, Y>,
         mut go: impl FnMut(
-            <ssa_canon::Func<O, T, Y> as ssa_traits::Func>::Block,
+            <ssa_canon::Func<O, T, Y> as cfg_traits::Func>::Block,
         ) -> anyhow::Result<TokenStream>,
     ) -> anyhow::Result<TokenStream> {
         render_target(self, f, &mut go, empty::<ssa_canon::Value<O, T, Y>>())

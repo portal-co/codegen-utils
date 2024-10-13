@@ -93,31 +93,31 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     ssa_traits::HasValues<Func<O, T, Y>> for Value<O, T, Y>
 {
-    fn values(
-        &self,
-        f: &Func<O, T, Y>,
-    ) -> impl Iterator<Item = <Func<O, T, Y> as ssa_traits::Func>::Value> {
-        match self {
+    fn values<'a>(
+        &'a self,
+        f: &'a Func<O, T, Y>,
+    ) -> Box<(dyn Iterator<Item = Id<Value<O, T, Y>>> + 'a)> {
+        Box::new(match self {
             Value::Op(_, a, _, _) => Some(a.iter().cloned()),
             Value::Param(_, _, _) => None,
         }
         .into_iter()
-        .flatten()
+        .flatten())
     }
 
     fn values_mut<'a>(
         &'a mut self,
         g: &'a mut Func<O, T, Y>,
-    ) -> impl Iterator<Item = &'a mut <Func<O, T, Y> as ssa_traits::Func>::Value>
+    ) -> Box<(dyn Iterator<Item = &'a mut Id<Value<O, T, Y>>> + 'a)>
     where
         Func<O, T, Y>: 'a,
     {
-        match self {
+        Box::new(match self {
             Value::Op(_, a, _, _) => Some(a.iter_mut()),
             Value::Param(_, _, _) => None,
         }
         .into_iter()
-        .flatten()
+        .flatten())
     }
 }
 
@@ -189,21 +189,21 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     ssa_traits::HasValues<Func<O, T, Y>> for Target<O, T, Y>
 {
-    fn values(
-        &self,
-        f: &Func<O, T, Y>,
-    ) -> impl Iterator<Item = <Func<O, T, Y> as ssa_traits::Func>::Value> {
-        self.args.iter().cloned()
+    fn values<'a>(
+        &'a self,
+        f: &'a Func<O, T, Y>,
+    ) -> Box<(dyn Iterator<Item = Id<Value<O, T, Y>>> + 'a)> {
+        Box::new(self.args.iter().cloned())
     }
 
     fn values_mut<'a>(
         &'a mut self,
         g: &'a mut Func<O, T, Y>,
-    ) -> impl Iterator<Item = &'a mut <Func<O, T, Y> as ssa_traits::Func>::Value>
+    ) -> Box<(dyn Iterator<Item = &'a mut Id<Value<O, T, Y>>> + 'a)>
     where
         Func<O, T, Y>: 'a,
     {
-        self.args.iter_mut()
+        Box::new(self.args.iter_mut())
     }
 }
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::Term<Func<O, T, Y>>
@@ -211,18 +211,18 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::
 {
     type Target = Self;
 
-    fn targets<'a>(&'a self) -> impl Iterator<Item = &'a Self::Target>
+    fn targets<'a>(&'a self) -> Box<(dyn Iterator<Item = &'a Target<O, T, Y>> + 'a)>
     where
         Func<O, T, Y>: 'a,
     {
-        once(self)
+        Box::new(once(self))
     }
 
-    fn targets_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut Self::Target>
+    fn targets_mut<'a>(&'a mut self) -> Box<(dyn Iterator<Item = &'a mut Target<O, T, Y>> + 'a)>
     where
         Func<O, T, Y>: 'a,
     {
-        once(self)
+        Box::new(once(self))
     }
 }
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>

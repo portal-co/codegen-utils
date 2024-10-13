@@ -5,6 +5,7 @@ use arena_traits::Arena;
 use either::Either;
 // use ssa_traits::TypedFunc;
 use ssa_traits::*;
+use cfg_traits::{Block as CFGBlock};
 
 pub fn cc<F: CCFunc>(s: &F, e: F::Block) -> anyhow::Result<String> {
     let params = s.blocks()[e.clone()]

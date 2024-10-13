@@ -163,6 +163,7 @@ version = "0.1.4"
 dependencies = [
  "anyhow",
  "arena-traits",
+ "cfg-traits",
  "either",
  "id-arena",
  "ssa-canon",
@@ -195,6 +196,7 @@ version = "0.1.4"
 dependencies = [
  "anyhow",
  "arena-traits",
+ "cfg-traits",
  "either",
  "id-arena",
  "proc-macro2",

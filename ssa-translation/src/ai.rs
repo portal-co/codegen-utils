@@ -87,7 +87,7 @@ pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
                     &mut a
                         .iter()
                         .cloned()
-                        .map(|x| <G as Func>::values(g)[x].ty(g))
+                        .map(|x| <G as ssa_traits::Func>::values(g)[x].ty(g))
                         .map(ControlFlow::Continue),
                 )
             else {
@@ -169,7 +169,7 @@ impl<
             <F>::Block,
             Self::Instance,
         ) -> anyhow::Result<<G as cfg_traits::Func>::Block>,
-        val: &<<<F>::Blocks as core::ops::Index<<F>::Block>>::Output as ssa_traits::Block<F>>::Terminator,
+        val: &<<<F>::Blocks as core::ops::Index<<F>::Block>>::Output as cfg_traits::Block<F>>::Terminator,
     ) -> anyhow::Result<()> {
         H::emit_term(ctx, i, g, f, k, map, params, go, val)
     }

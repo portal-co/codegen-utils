@@ -8,6 +8,7 @@ description = "Traits for compiling SSA IR to C"
 [dependencies]
 anyhow = "1.0.86"
 arena-traits = { version = "0.1.0", path = "../arena-traits" }
+cfg-traits = { version = "0.1.0", path = "../cfg-traits" }
 either = "1.13.0"
 id-arena = { workspace = true, optional = true }
 

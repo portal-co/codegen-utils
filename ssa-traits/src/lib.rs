@@ -3,6 +3,7 @@
 use core::{iter::once, ops::Index};
 
 extern crate alloc;
+use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -28,57 +29,57 @@ impl<F: Func<Value: Clone> + ?Sized> Clone for Val<F> {
     }
 }
 impl<F: Func<Value: Clone> + ?Sized> HasValues<F> for Val<F> {
-    fn values(&self, f: &F) -> impl Iterator<Item = <F as Func>::Value> {
-        once(self.0.clone())
+    fn values<'a>(&'a self, f: &'a F) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
+        Box::new(once(self.0.clone()))
     }
 
     fn values_mut<'a>(
         &'a mut self,
         g: &'a mut F,
-    ) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
     where
         F: 'a,
     {
-        once(&mut self.0)
+        Box::new(once(&mut self.0))
     }
 }
 impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Val<F> {
-    fn values_chain(&self) -> impl Iterator<Item = <F as Func>::Value> {
-        once(self.0.clone())
+    fn values_chain<'a>(&'a self) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
+        Box::new(once(self.0.clone()))
     }
 
-    fn values_chain_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    fn values_chain_mut<'a>(&'a mut self) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
     where
         F: 'a,
     {
-        once(&mut self.0)
+        Box::new(once(&mut self.0))
     }
 }
 impl<F: Func<Value: Clone> + ?Sized> HasValues<F> for Vec<F::Value> {
-    fn values(&self, f: &F) -> impl Iterator<Item = <F as Func>::Value> {
-        self.iter().cloned()
+    fn values<'a>(&'a self, f: &'a F) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
+        Box::new(self.iter().cloned())
     }
 
     fn values_mut<'a>(
         &'a mut self,
         g: &'a mut F,
-    ) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
     where
         F: 'a,
     {
-        self.iter_mut()
+        Box::new(self.iter_mut())
     }
 }
 impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Vec<F::Value> {
-    fn values_chain(&self) -> impl Iterator<Item = <F as Func>::Value> {
-        self.iter().cloned()
+    fn values_chain<'a>(&'a self) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
+        Box::new(self.iter().cloned())
     }
 
-    fn values_chain_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    fn values_chain_mut<'a>(&'a mut self) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
     where
         F: 'a,
     {
-        self.iter_mut()
+        Box::new(self.iter_mut())
     }
 }
 pub struct BuildFn<F> {
@@ -142,8 +143,8 @@ pub trait TypedBlock<F: TypedFunc<Blocks: Arena<F::Block, Output = Self>> + ?Siz
 }
 
 pub trait HasValues<F: Func + ?Sized> {
-    fn values(&self, f: &F) -> impl Iterator<Item = F::Value>;
-    fn values_mut<'a>(&'a mut self, g: &'a mut F) -> impl Iterator<Item = &'a mut F::Value>
+    fn values<'a>(&'a self, f: &'a F) -> Box<dyn Iterator<Item = F::Value> + 'a>;
+    fn values_mut<'a>(&'a mut self, g: &'a mut F) -> Box<dyn Iterator<Item = &'a mut F::Value> + 'a>
     where
         F: 'a;
 }
@@ -151,49 +152,49 @@ pub trait FromValues<F: Func + ?Sized>: HasValues<F> {
     fn from_values(f: &mut F, i: impl Iterator<Item = F::Value>) -> Self;
 }
 pub trait HasChainableValues<F: Func + ?Sized>: HasValues<F> {
-    fn values_chain(&self) -> impl Iterator<Item = F::Value>;
-    fn values_chain_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut F::Value>
+    fn values_chain<'a>(&'a self) -> Box<dyn Iterator<Item = F::Value> + 'a>;
+    fn values_chain_mut<'a>(&'a mut self) -> Box<dyn Iterator<Item = &'a mut F::Value> + 'a>
     where
         F: 'a;
 }
 impl<F: Func + ?Sized, A: HasValues<F>, B: HasValues<F>> HasValues<F> for Either<A, B> {
-    fn values(&self, f: &F) -> impl Iterator<Item = <F as Func>::Value> {
+    fn values<'a>(&'a self, f: &'a F) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
         match self {
-            Either::Left(a) => Either::Left(a.values(f)),
-            Either::Right(b) => Either::Right(b.values(f)),
+            Either::Left(a) => a.values(f),
+            Either::Right(b) => b.values(f),
         }
     }
 
     fn values_mut<'a>(
         &'a mut self,
         f: &'a mut F,
-    ) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
     where
         F: 'a,
     {
         match self {
-            Either::Left(a) => Either::Left(a.values_mut(f)),
-            Either::Right(b) => Either::Right(b.values_mut(f)),
+            Either::Left(a) => a.values_mut(f),
+            Either::Right(b) => b.values_mut(f),
         }
     }
 }
 impl<F: Func + ?Sized, A: HasChainableValues<F>, B: HasChainableValues<F>> HasChainableValues<F>
     for Either<A, B>
 {
-    fn values_chain(&self) -> impl Iterator<Item = <F as Func>::Value> {
+    fn values_chain<'a>(&'a self) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
         match self {
-            Either::Left(a) => Either::Left(a.values_chain()),
-            Either::Right(b) => Either::Right(b.values_chain()),
+            Either::Left(a) => a.values_chain(),
+            Either::Right(b) => b.values_chain(),
         }
     }
 
-    fn values_chain_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut <F as Func>::Value>
+    fn values_chain_mut<'a>(&'a mut self) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
     where
         F: 'a,
     {
         match self {
-            Either::Left(a) => Either::Left(a.values_chain_mut()),
-            Either::Right(b) => Either::Right(b.values_chain_mut()),
+            Either::Left(a) => a.values_chain_mut(),
+            Either::Right(b) => b.values_chain_mut(),
         }
     }
 }

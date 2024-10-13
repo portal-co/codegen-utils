@@ -3,6 +3,7 @@
 use core::{iter::once, ops::Index};
 
 extern crate alloc;
+use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -40,10 +41,10 @@ pub trait Target<F: Func + ?Sized>: Term<F, Target = Self> {
 }
 pub trait Term<F: Func + ?Sized> {
     type Target: Target<F>;
-    fn targets<'a>(&'a self) -> impl Iterator<Item = &'a Self::Target>
+    fn targets<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::Target> + 'a>
     where
         F: 'a;
-    fn targets_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut Self::Target>
+    fn targets_mut<'a>(&'a mut self) -> Box<dyn Iterator<Item = &'a mut Self::Target> + 'a>
     where
         F: 'a;
 }
@@ -53,23 +54,23 @@ impl<F: Func + ?Sized, T: Target<F>, A: Term<F, Target = T>, B: Term<F, Target =
 {
     type Target = T;
 
-    fn targets<'a>(&'a self) -> impl Iterator<Item = &'a Self::Target>
+    fn targets<'a>(&'a self) -> Box<(dyn Iterator<Item = &'a T> + 'a)>
     where
         F: 'a,
     {
         match self {
-            Either::Left(a) => Either::Left(a.targets()),
-            Either::Right(b) => Either::Right(b.targets()),
+            Either::Left(a) => a.targets(),
+            Either::Right(b) => b.targets(),
         }
     }
 
-    fn targets_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut Self::Target>
+    fn targets_mut<'a>(&'a mut self) -> Box<(dyn Iterator<Item = &'a mut T> + 'a)>
     where
         F: 'a,
     {
         match self {
-            Either::Left(a) => Either::Left(a.targets_mut()),
-            Either::Right(b) => Either::Right(b.targets_mut()),
+            Either::Left(a) => a.targets_mut(),
+            Either::Right(b) => b.targets_mut(),
         }
     }
 }
