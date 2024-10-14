@@ -1,6 +1,6 @@
 use std::iter::empty;
 
-use arena_traits::Arena;
+use arena_traits::{Arena, IndexIter};
 use either::Either;
 use proc_macro2::{Span, TokenStream};
 use quasiquote::quasiquote;

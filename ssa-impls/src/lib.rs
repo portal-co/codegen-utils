@@ -3,7 +3,7 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use arena_traits::Arena;
+use arena_traits::{Arena, IndexIter};
 use ssa_traits::{Func, TypedBlock, TypedFunc, Target as SSATarget};
 use cfg_traits::{Block,Term,Target};
 pub mod cfg;

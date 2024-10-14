@@ -129,6 +129,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "register-machine-traits"
+version = "0.1.0"
+dependencies = [
+ "arena-traits",
+ "cfg-traits",
+]
+
+[[package]]
 name = "relooper"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -240,6 +248,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "tac-traits"
+version = "0.1.0"
+dependencies = [
+ "arena-traits",
+ "cfg-traits",
+ "register-machine-traits",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 [workspace]
-members=["arena-traits", "ssa-traits", "ssa-impls",  "ssa-translation", "ssa-reloop", "ssa-cc", "ssa-canon","sift-trait", "ssa-rust", "cfg-traits"]
+members=["arena-traits", "ssa-traits", "ssa-impls",  "ssa-translation", "ssa-reloop", "ssa-cc", "ssa-canon","sift-trait", "ssa-rust", "cfg-traits", "register-machine-traits", "tac-traits"]
 resolver="2"
 
 [workspace.dependencies]

@@ -9,7 +9,7 @@ use  alloc::{
 };
 
 
-use arena_traits::Arena;
+use arena_traits::{Arena, IndexAlloc};
 use ssa_traits::TypedBlock;
 use ssa_traits::{Block, Func, TypedFunc};
 use cfg_traits::{Block as CFGBlock};

@@ -1,6 +1,6 @@
 use alloc::{collections::{BTreeMap, BTreeSet}, vec::Vec};
 
-use arena_traits::Arena;
+use arena_traits::{Arena, IndexIter};
 use ssa_traits::{Block, Func, HasValues, Target, Term, TypedFunc, TypedValue, Value};
 use cfg_traits::{Block as CFGBlock, Func as CFGFunc, Target as CFGTarget, Term as CFGTerm};
 use core::hash::Hash;

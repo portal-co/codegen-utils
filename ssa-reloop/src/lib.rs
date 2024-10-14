@@ -1,4 +1,5 @@
 use arena_traits::Arena;
+use arena_traits::IndexIter;
 use relooper::{RelooperLabel, ShapedBlock};
 use ssa_impls::dom::dominates;
 use cfg_traits::Func;

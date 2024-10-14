@@ -1,4 +1,4 @@
-use arena_traits::Arena;
+use arena_traits::{Arena, IndexAlloc, IndexIter};
 use ssa_traits::{Block, HasValues, Target, Term, TypedBlock, TypedFunc};
 use cfg_traits::{Block as CFGBlock, Func as CFGFunc, Target as CFGTarget, Term as CFGTerm};
 use alloc::{

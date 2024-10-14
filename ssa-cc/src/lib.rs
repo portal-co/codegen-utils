@@ -1,6 +1,6 @@
 use std::iter::empty;
 
-use arena_traits::Arena;
+use arena_traits::{Arena, IndexIter};
 
 use either::Either;
 // use ssa_traits::TypedFunc;
