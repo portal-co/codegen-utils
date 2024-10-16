@@ -1,6 +1,6 @@
 [package]
 name = "ssa-impls"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 edition = "2021"
 license = "CC0-1.0"
 description = "Implementation of common SSA algorithms"

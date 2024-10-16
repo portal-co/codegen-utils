@@ -10,7 +10,7 @@ checksum = "10f00e1f6e58a40e807377c75c6a7f97bf9044fab57816f2414e6f5f4499d7b8"
 
 [[package]]
 name = "arena-traits"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 dependencies = [
  "id-arena",
 ]
@@ -23,7 +23,7 @@ checksum = "0c4b4d0bd25bd0b74681c0ad21497610ce1b7c91b1022cd21c80c6fbdd9476b0"
 
 [[package]]
 name = "cfg-traits"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 dependencies = [
  "arena-traits",
  "either",
@@ -130,7 +130,7 @@ dependencies = [
 
 [[package]]
 name = "register-machine-traits"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 dependencies = [
  "arena-traits",
  "cfg-traits",
@@ -148,14 +148,14 @@ dependencies = [
 
 [[package]]
 name = "sift-trait"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 dependencies = [
  "either",
 ]
 
 [[package]]
 name = "ssa-canon"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -167,7 +167,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-cc"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -180,7 +180,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-impls"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 dependencies = [
  "arena-traits",
  "cfg-traits",
@@ -189,7 +189,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-reloop"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 dependencies = [
  "arena-traits",
  "cfg-traits",
@@ -200,7 +200,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-rust"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -219,7 +219,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-traits"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -229,7 +229,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-translation"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -252,7 +252,7 @@ dependencies = [
 
 [[package]]
 name = "tac-traits"
-version = "0.2.0-alpha.0"
+version = "0.2.0-alpha.1"
 dependencies = [
  "arena-traits",
  "cfg-traits",
