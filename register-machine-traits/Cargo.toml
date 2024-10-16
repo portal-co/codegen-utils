@@ -1,10 +1,10 @@
 [package]
 name = "register-machine-traits"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 edition = "2021"
 license = "CC0-1.0"
 decsription = "Traits for register machines"
 
 [dependencies]
-arena-traits = { version = "0.1.4", path = "../arena-traits" }
-cfg-traits = { version = "0.1.0", path = "../cfg-traits" }
+arena-traits = { version = "0.2.0-alpha.0", path = "../arena-traits" }
+cfg-traits = { version = "0.2.0-alpha.0", path = "../cfg-traits" }
