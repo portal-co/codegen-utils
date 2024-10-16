@@ -2,6 +2,8 @@
 name = "tac-traits"
 version = "0.1.0"
 edition = "2021"
+license = "CC0-1.0"
+decsription = "Traits for Three Address Code"
 
 [dependencies]
 arena-traits = { version = "0.1.4", path = "../arena-traits" }
