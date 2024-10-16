@@ -7,3 +7,4 @@ edition = "2021"
 arena-traits = { version = "0.1.4", path = "../arena-traits" }
 cfg-traits = { version = "0.1.0", path = "../cfg-traits" }
 register-machine-traits = { version = "0.1.0", path = "../register-machine-traits" }
+sift-trait = { version = "0.1.4", path = "../sift-trait" }

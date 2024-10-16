@@ -257,6 +257,7 @@ dependencies = [
  "arena-traits",
  "cfg-traits",
  "register-machine-traits",
+ "sift-trait",
 ]
 
 [[package]]
