@@ -10,14 +10,15 @@ use alloc::vec::Vec;
 use arena_traits::Arena;
 use either::Either;
 pub mod op;
-pub trait Func : cfg_traits::Func<Blocks: Arena<Self::Block,Output: Block<Self>>>{
+pub trait Func: cfg_traits::Func<Blocks: Arena<Self::Block, Output: Block<Self>>> {
     type Value;
     type Values: Arena<Self::Value, Output: Value<Self>>;
     fn values(&self) -> &Self::Values;
     fn values_mut(&mut self) -> &mut Self::Values;
 }
 pub type ValueI<F> = <<F as Func>::Values as Index<<F as Func>::Value>>::Output;
-pub type BlockI<F> = <<F as cfg_traits::Func>::Blocks as Index<<F as cfg_traits::Func>::Block>>::Output;
+pub type BlockI<F> =
+    <<F as cfg_traits::Func>::Blocks as Index<<F as cfg_traits::Func>::Block>>::Output;
 pub type TermI<F> = <BlockI<F> as cfg_traits::Block<F>>::Terminator;
 pub type TargetI<F> = <TermI<F> as cfg_traits::Term<F>>::Target;
 
@@ -48,7 +49,9 @@ impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Val<F> {
         Box::new(once(self.0.clone()))
     }
 
-    fn values_chain_mut<'a>(&'a mut self) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
+    fn values_chain_mut<'a>(
+        &'a mut self,
+    ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
     where
         F: 'a,
     {
@@ -75,7 +78,9 @@ impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Vec<F::Value> {
         Box::new(self.iter().cloned())
     }
 
-    fn values_chain_mut<'a>(&'a mut self) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
+    fn values_chain_mut<'a>(
+        &'a mut self,
+    ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
     where
         F: 'a,
     {
@@ -89,6 +94,15 @@ pub fn build_fn<F: FnOnce(&mut G, G::Block) -> anyhow::Result<(R, G::Block)>, G:
     f: F,
 ) -> BuildFn<F> {
     BuildFn { func: f }
+}
+pub trait CpsBuilder<F: Func> {
+    type Result;
+    fn go<'a: 'b + 'c, 'b, 'c, R>(
+        self,
+        f: &'b mut F,
+        k: F::Block,
+        next: Box<dyn FnMut(&mut F, Self::Result, F::Block) -> anyhow::Result<R> + 'c>,
+    ) -> Box<dyn Iterator<Item = anyhow::Result<R>> + 'a>;
 }
 pub trait Builder<F: Func> {
     type Result;
@@ -116,7 +130,9 @@ impl<F: FnOnce(&mut G, G::Block) -> anyhow::Result<(R, G::Block)>, G: Func, R> B
         self(f, k)
     }
 }
-pub trait Block<F: Func<Blocks: Arena<F::Block, Output = Self>> + ?Sized>: cfg_traits::Block<F, Terminator: Term<F>> {
+pub trait Block<F: Func<Blocks: Arena<F::Block, Output = Self>> + ?Sized>:
+    cfg_traits::Block<F, Terminator: Term<F>>
+{
     fn insts(&self) -> impl Iterator<Item = F::Value>;
     fn add_inst(func: &mut F, key: F::Block, v: F::Value);
 }
@@ -144,7 +160,10 @@ pub trait TypedBlock<F: TypedFunc<Blocks: Arena<F::Block, Output = Self>> + ?Siz
 
 pub trait HasValues<F: Func + ?Sized> {
     fn values<'a>(&'a self, f: &'a F) -> Box<dyn Iterator<Item = F::Value> + 'a>;
-    fn values_mut<'a>(&'a mut self, g: &'a mut F) -> Box<dyn Iterator<Item = &'a mut F::Value> + 'a>
+    fn values_mut<'a>(
+        &'a mut self,
+        g: &'a mut F,
+    ) -> Box<dyn Iterator<Item = &'a mut F::Value> + 'a>
     where
         F: 'a;
 }
@@ -188,7 +207,9 @@ impl<F: Func + ?Sized, A: HasChainableValues<F>, B: HasChainableValues<F>> HasCh
         }
     }
 
-    fn values_chain_mut<'a>(&'a mut self) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
+    fn values_chain_mut<'a>(
+        &'a mut self,
+    ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
     where
         F: 'a,
     {
@@ -202,9 +223,5 @@ pub trait Target<F: Func + ?Sized>: HasValues<F> + cfg_traits::Target<F> {
     fn push_value(&mut self, v: F::Value);
     fn from_values_and_block(a: impl Iterator<Item = F::Value>, k: F::Block) -> Self;
 }
-pub trait Term<F: Func + ?Sized>: HasValues<F> + cfg_traits::Term<F, Target: Target<F>> {
-
-}
-impl<F: Func + ?Sized,T: HasValues<F> + cfg_traits::Term<F, Target: Target<F>>> Term<F> for T{
-
-}
+pub trait Term<F: Func + ?Sized>: HasValues<F> + cfg_traits::Term<F, Target: Target<F>> {}
+impl<F: Func + ?Sized, T: HasValues<F> + cfg_traits::Term<F, Target: Target<F>>> Term<F> for T {}

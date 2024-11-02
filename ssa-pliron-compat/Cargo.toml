@@ -1,0 +1,12 @@
+[package]
+name = "ssa-pliron-compat"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.89"
+arena-traits = { version = "0.2.0-alpha.1", path = "../arena-traits" }
+cfg-traits = { version = "0.2.0-alpha.1", path = "../cfg-traits" }
+linkme = "0.3.28"
+pliron = "0.5.0"
+ssa-traits = { version = "0.2.0-alpha.1", path = "../ssa-traits" }

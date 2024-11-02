@@ -1,0 +1,11 @@
+[package]
+name = "ssa-trace"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.89"
+arena-traits = { version = "0.2.0-alpha.1", path = "../arena-traits" }
+cfg-traits = { version = "0.2.0-alpha.1", path = "../cfg-traits" }
+ssa-traits = { version = "0.2.0-alpha.1", path = "../ssa-traits" }
+valser = {version="0.1.1",default-features=false,features=["alloc"]}

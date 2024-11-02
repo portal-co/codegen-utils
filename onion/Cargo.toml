@@ -1,6 +1,11 @@
 [package]
-name = "onion"
+name = "type-onion"
 version = "0.1.0"
 edition = "2021"
+license = "CC0-1.0"
+description = "Merge some lists of types, returning metadata to manage them"
 
 [dependencies]
+
+[lib]
+name = "onion"
