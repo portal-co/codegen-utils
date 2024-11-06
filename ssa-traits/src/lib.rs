@@ -1,5 +1,7 @@
 #![no_std]
 
+use core::ops::{Deref, DerefMut};
+use core::slice::{Iter, IterMut};
 use core::{iter::once, ops::Index};
 
 extern crate alloc;
@@ -9,12 +11,21 @@ use alloc::vec::Vec;
 
 use arena_traits::Arena;
 use either::Either;
+use lending_iterator::lending_iterator::constructors::into_lending_iter;
+use lending_iterator::prelude::{LendingIteratorDyn, HKT};
+use lending_iterator::LendingIterator;
 pub mod op;
 pub trait Func: cfg_traits::Func<Blocks: Arena<Self::Block, Output: Block<Self>>> {
     type Value;
     type Values: Arena<Self::Value, Output: Value<Self>>;
-    fn values(&self) -> &Self::Values;
-    fn values_mut(&mut self) -> &mut Self::Values;
+    type VRef<'a>: Deref<Target = Self::Values>
+    where
+        Self: 'a;
+    type VMut<'a>: DerefMut<Target = Self::Values>
+    where
+        Self: 'a;
+    fn values<'a>(&'a self) -> Self::VRef<'a>;
+    fn values_mut<'a>(&'a mut self) -> Self::VMut<'a>;
 }
 pub type ValueI<F> = <<F as Func>::Values as Index<<F as Func>::Value>>::Output;
 pub type BlockI<F> =
@@ -30,61 +41,163 @@ impl<F: Func<Value: Clone> + ?Sized> Clone for Val<F> {
     }
 }
 impl<F: Func<Value: Clone> + ?Sized> HasValues<F> for Val<F> {
-    fn values<'a>(&'a self, f: &'a F) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
-        Box::new(once(self.0.clone()))
+    fn values<'a>(
+        &'a self,
+        f: &'a F,
+    ) -> Box<dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn Deref<Target = F::Value> + 'b>)> + 'a>
+    {
+        Box::new(lending_iterator::lending_iterator::constructors::from_fn::<
+            HKT!(<'b> => Box<dyn Deref<Target = F::Value> + 'b>),
+            Option<&'a Self>,
+            _,
+        >(Some(self), |mut x| {
+            let x = x.take()?;
+            return Some(Box::new(&x.0));
+        }))
     }
 
     fn values_mut<'a>(
         &'a mut self,
         g: &'a mut F,
-    ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
+    ) -> Box<
+        (dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn DerefMut<Target = F::Value> + 'b>)>
+             + 'a),
+    >
     where
         F: 'a,
     {
-        Box::new(once(&mut self.0))
+        Box::new(lending_iterator::lending_iterator::constructors::from_fn::<
+            HKT!(<'b> => Box<dyn DerefMut<Target = F::Value> + 'b>),
+            Option<&'a mut Self>,
+            _,
+        >(Some(self), |mut x| {
+            let x = x.take()?;
+            return Some(Box::new(&mut x.0));
+        }))
     }
 }
 impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Val<F> {
-    fn values_chain<'a>(&'a self) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
-        Box::new(once(self.0.clone()))
+    fn values_chain<'a>(
+        &'a self,
+    ) -> Box<dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn Deref<Target = F::Value> + 'b>)> + 'a>
+    {
+        Box::new(lending_iterator::lending_iterator::constructors::from_fn::<
+            HKT!(<'b> => Box<dyn Deref<Target = F::Value> + 'b>),
+            Option<&'a Self>,
+            _,
+        >(Some(self), |mut x| {
+            let x = x.take()?;
+            return Some(Box::new(&x.0));
+        }))
     }
 
     fn values_chain_mut<'a>(
         &'a mut self,
-    ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
+    ) -> Box<
+        dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn DerefMut<Target = F::Value> + 'b>)> + 'a,
+    >
     where
         F: 'a,
     {
-        Box::new(once(&mut self.0))
+        Box::new(lending_iterator::lending_iterator::constructors::from_fn::<
+            HKT!(<'b> => Box<dyn DerefMut<Target = F::Value> + 'b>),
+            Option<&'a mut Self>,
+            _,
+        >(Some(self), |mut x| {
+            let x = x.take()?;
+            return Some(Box::new(&mut x.0));
+        }))
     }
 }
+pub fn val_iter<'a, V: 'a, I: Iterator<Item: Deref<Target = V> + 'a> + 'a>(
+    i: I,
+) -> Box<dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn Deref<Target = V> + 'b>)> + 'a> {
+    Box::new(
+        i.into_lending_iter()
+            .map::<HKT!(<'b> => Box<dyn Deref<Target = V> + 'b>), _>(|[], x| Box::new(x)),
+    )
+}
+pub fn val_mut_iter<'a, V: 'a, I: Iterator<Item: DerefMut<Target = V> + 'a> + 'a>(
+    i: I,
+) -> Box<dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn DerefMut<Target = V> + 'b>)> + 'a> {
+    Box::new(
+        i.into_lending_iter()
+            .map::<HKT!(<'b> => Box<dyn DerefMut<Target = V> + 'b>), _>(|[], x| Box::new(x)),
+    )
+}
 impl<F: Func<Value: Clone> + ?Sized> HasValues<F> for Vec<F::Value> {
-    fn values<'a>(&'a self, f: &'a F) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
-        Box::new(self.iter().cloned())
+    fn values<'a>(
+        &'a self,
+        f: &'a F,
+    ) -> Box<dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn Deref<Target = F::Value> + 'b>)> + 'a>
+    {
+        Box::new(lending_iterator::lending_iterator::constructors::from_fn::<
+            HKT!(<'b> => Box<dyn Deref<Target = F::Value> + 'b>),
+            Option<Iter<'a, F::Value>>,
+            _,
+        >(Some(self.iter()), |mut x2| {
+            let mut x = x2.take()?;
+            let n = x.next()?;
+            *x2 = Some(x);
+            return Some(Box::new(n));
+        }))
     }
 
     fn values_mut<'a>(
         &'a mut self,
         g: &'a mut F,
-    ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
+    ) -> Box<
+        dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn DerefMut<Target = F::Value> + 'b>)> + 'a,
+    >
     where
         F: 'a,
     {
-        Box::new(self.iter_mut())
+        Box::new(lending_iterator::lending_iterator::constructors::from_fn::<
+            HKT!(<'b> =>  Box<dyn DerefMut<Target = F::Value> + 'b>),
+            Option<IterMut<'a, F::Value>>,
+            _,
+        >(Some(self.iter_mut()), |mut x2| {
+            let mut x = x2.take()?;
+            let n = x.next()?;
+            *x2 = Some(x);
+            return Some(Box::new(n));
+        }))
     }
 }
 impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Vec<F::Value> {
-    fn values_chain<'a>(&'a self) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
-        Box::new(self.iter().cloned())
+    fn values_chain<'a>(
+        &'a self,
+    ) -> Box<dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn Deref<Target = F::Value> + 'b>)> + 'a>
+    {
+        Box::new(lending_iterator::lending_iterator::constructors::from_fn::<
+            HKT!(<'b> => Box<dyn Deref<Target = F::Value> + 'b>),
+            Option<Iter<'a, F::Value>>,
+            _,
+        >(Some(self.iter()), |mut x2| {
+            let mut x = x2.take()?;
+            let n = x.next()?;
+            *x2 = Some(x);
+            return Some(Box::new(n));
+        }))
     }
-
     fn values_chain_mut<'a>(
         &'a mut self,
-    ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
+    ) -> Box<
+        dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn DerefMut<Target = F::Value> + 'b>)> + 'a,
+    >
     where
         F: 'a,
     {
-        Box::new(self.iter_mut())
+        Box::new(lending_iterator::lending_iterator::constructors::from_fn::<
+            HKT!(<'b> =>  Box<dyn DerefMut<Target = F::Value> + 'b>),
+            Option<IterMut<'a, F::Value>>,
+            _,
+        >(Some(self.iter_mut()), |mut x2| {
+            let mut x = x2.take()?;
+            let n = x.next()?;
+            *x2 = Some(x);
+            return Some(Box::new(n));
+        }))
     }
 }
 pub struct BuildFn<F> {
@@ -159,11 +272,16 @@ pub trait TypedBlock<F: TypedFunc<Blocks: Arena<F::Block, Output = Self>> + ?Siz
 }
 
 pub trait HasValues<F: Func + ?Sized> {
-    fn values<'a>(&'a self, f: &'a F) -> Box<dyn Iterator<Item = F::Value> + 'a>;
+    fn values<'a>(
+        &'a self,
+        f: &'a F,
+    ) -> Box<dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn Deref<Target = F::Value> + 'b>)> + 'a>;
     fn values_mut<'a>(
         &'a mut self,
         g: &'a mut F,
-    ) -> Box<dyn Iterator<Item = &'a mut F::Value> + 'a>
+    ) -> Box<
+        dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn DerefMut<Target = F::Value> + 'b>)> + 'a,
+    >
     where
         F: 'a;
 }
@@ -171,13 +289,23 @@ pub trait FromValues<F: Func + ?Sized>: HasValues<F> {
     fn from_values(f: &mut F, i: impl Iterator<Item = F::Value>) -> Self;
 }
 pub trait HasChainableValues<F: Func + ?Sized>: HasValues<F> {
-    fn values_chain<'a>(&'a self) -> Box<dyn Iterator<Item = F::Value> + 'a>;
-    fn values_chain_mut<'a>(&'a mut self) -> Box<dyn Iterator<Item = &'a mut F::Value> + 'a>
+    fn values_chain<'a>(
+        &'a self,
+    ) -> Box<dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn Deref<Target = F::Value> + 'b>)> + 'a>;
+    fn values_chain_mut<'a>(
+        &'a mut self,
+    ) -> Box<
+        dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn DerefMut<Target = F::Value> + 'b>)> + 'a,
+    >
     where
         F: 'a;
 }
 impl<F: Func + ?Sized, A: HasValues<F>, B: HasValues<F>> HasValues<F> for Either<A, B> {
-    fn values<'a>(&'a self, f: &'a F) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
+    fn values<'a>(
+        &'a self,
+        f: &'a F,
+    ) -> Box<dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn Deref<Target = F::Value> + 'b>)> + 'a>
+    {
         match self {
             Either::Left(a) => a.values(f),
             Either::Right(b) => b.values(f),
@@ -187,7 +315,9 @@ impl<F: Func + ?Sized, A: HasValues<F>, B: HasValues<F>> HasValues<F> for Either
     fn values_mut<'a>(
         &'a mut self,
         f: &'a mut F,
-    ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
+    ) -> Box<
+        dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn DerefMut<Target = F::Value> + 'b>)> + 'a,
+    >
     where
         F: 'a,
     {
@@ -200,7 +330,10 @@ impl<F: Func + ?Sized, A: HasValues<F>, B: HasValues<F>> HasValues<F> for Either
 impl<F: Func + ?Sized, A: HasChainableValues<F>, B: HasChainableValues<F>> HasChainableValues<F>
     for Either<A, B>
 {
-    fn values_chain<'a>(&'a self) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
+    fn values_chain<'a>(
+        &'a self,
+    ) -> Box<dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn Deref<Target = F::Value> + 'b>)> + 'a>
+    {
         match self {
             Either::Left(a) => a.values_chain(),
             Either::Right(b) => b.values_chain(),
@@ -209,7 +342,9 @@ impl<F: Func + ?Sized, A: HasChainableValues<F>, B: HasChainableValues<F>> HasCh
 
     fn values_chain_mut<'a>(
         &'a mut self,
-    ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
+    ) -> Box<
+        dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn DerefMut<Target = F::Value> + 'b>)> + 'a,
+    >
     where
         F: 'a,
     {

@@ -4,8 +4,9 @@ use arena_traits::{Arena, IndexIter};
 
 use either::Either;
 // use ssa_traits::TypedFunc;
+use cfg_traits::Block as CFGBlock;
+use lending_iterator::prelude::*;
 use ssa_traits::*;
-use cfg_traits::{Block as CFGBlock};
 
 pub fn cc<F: CCFunc>(s: &F, e: F::Block) -> anyhow::Result<String> {
     let params = s.blocks()[e.clone()]
@@ -23,6 +24,7 @@ pub fn cc<F: CCFunc>(s: &F, e: F::Block) -> anyhow::Result<String> {
                 .params()
                 .enumerate()
                 .map(move |(a, (b, _))| Ok(format!("{} {}", b.c(s)?, kp(&c, a, s)?)))
+                .collect::<Vec<_>>()
         })
         .chain(
             s.values()
@@ -83,10 +85,18 @@ impl<
     > CCFunc for T
 {
 }
-pub fn render_target<C: CCFunc>(t: &impl Target<C>, c: &C, prepend: impl Iterator<Item: crate::C<C>>) -> anyhow::Result<String> {
-    let args = prepend.map(|a|a.c(c)).chain(t
-        .values(c)
-        .map(|v|v.c(c)))
+pub fn render_target<C: CCFunc>(
+    t: &impl Target<C>,
+    c: &C,
+    prepend: impl Iterator<Item: crate::C<C>>,
+) -> anyhow::Result<String> {
+    let args = prepend
+        .map(|a| a.c(c))
+        .chain(
+            t.values(c)
+                .map::<HKT!(<'b> => anyhow::Result<String>), _>(|[], v| v.c(c))
+                .into_iter(),
+        )
         .enumerate()
         .map(|(i, v)| {
             let k = kp(&t.block(), i, c)?;
@@ -111,14 +121,17 @@ impl<F: ?Sized, O: COp<F>, T, Y> C<F> for ssa_canon::Value<O, T, Y> {
     fn c(&self, f: &F) -> anyhow::Result<String> {
         use ssa_canon::Value;
         match self {
-            Value::Op(o, a,q, _) => o.c(&a,&q, f),
+            Value::Op(o, a, q, _) => o.c(&a, &q, f),
             Value::Param(n, k, _) => kp(k, *n, f),
         }
     }
 }
 #[cfg(feature = "ssa-canon")]
-impl<O: COp<ssa_canon::Func<O,T,Y>>, T: Term<ssa_canon::Func<O, T, Y>, Target = ssa_canon::Target<O, T, Y>>, Y: Clone>
-    C<ssa_canon::Func<O, T, Y>> for ssa_canon::Target<O, T, Y>
+impl<
+        O: COp<ssa_canon::Func<O, T, Y>>,
+        T: Term<ssa_canon::Func<O, T, Y>, Target = ssa_canon::Target<O, T, Y>>,
+        Y: Clone,
+    > C<ssa_canon::Func<O, T, Y>> for ssa_canon::Target<O, T, Y>
 where
     ssa_canon::Func<O, T, Y>: CCFunc,
 {
@@ -127,10 +140,10 @@ where
     }
 }
 impl<F, A: COp<F>, B: COp<F>> COp<F> for Either<A, B> {
-    fn c(&self, args: &[impl C<F>],blargs:&[impl C<F>], f: &F) -> anyhow::Result<String> {
+    fn c(&self, args: &[impl C<F>], blargs: &[impl C<F>], f: &F) -> anyhow::Result<String> {
         match self {
-            Either::Left(a) => a.c(args, blargs,f),
-            Either::Right(a) => a.c(args, blargs,f),
+            Either::Left(a) => a.c(args, blargs, f),
+            Either::Right(a) => a.c(args, blargs, f),
         }
     }
 }

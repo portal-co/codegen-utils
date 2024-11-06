@@ -10,6 +10,7 @@ anyhow = {version="1.0",default-features=false}
 arena-traits = { version = "0.2.0-alpha.0", path = "../arena-traits" }
 cfg-traits = { version = "0.2.0-alpha.0", path = "../cfg-traits" }
 either = "1.13.0"
+lending-iterator = "0.1.7"
 ssa-traits = { version = "0.2.0-alpha.0", path = "../ssa-traits" }
 valser = {version="0.1.1",default-features=false,features=["alloc"]}
 

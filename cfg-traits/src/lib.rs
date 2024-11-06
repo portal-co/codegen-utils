@@ -1,5 +1,6 @@
 #![no_std]
 
+use core::ops::{Deref, DerefMut};
 use core::{iter::once, ops::Index};
 
 extern crate alloc;
@@ -15,10 +16,12 @@ pub trait Func {
     type Block;
     // type Values: Arena<Self::Value, Output: Value<Self>>;
     type Blocks: Arena<Self::Block, Output: Block<Self>>;
+    type BRef<'a>: Deref<Target = Self::Blocks> where Self: 'a;
+    type BMut<'a>: DerefMut<Target = Self::Blocks> where Self: 'a;
     // fn values(&self) -> &Self::Values;
-    fn blocks(&self) -> &Self::Blocks;
+    fn blocks<'a>(&'a self) -> Self::BRef<'a>;
     // fn values_mut(&mut self) -> &mut Self::Values;
-    fn blocks_mut(&mut self) -> &mut Self::Blocks;
+    fn blocks_mut<'a>(&'a mut self) -> Self::BMut<'a>;
     fn entry(&self) -> Self::Block;
 }
 // pub type ValueI<F> = <<F as Func>::Values as Index<<F as Func>::Value>>::Output;
@@ -26,18 +29,16 @@ pub type BlockI<F> = <<F as Func>::Blocks as Index<<F as Func>::Block>>::Output;
 pub type TermI<F> = <BlockI<F> as Block<F>>::Terminator;
 pub type TargetI<F> = <TermI<F> as Term<F>>::Target;
 
-
 pub trait Block<F: Func<Blocks: Arena<F::Block, Output = Self>> + ?Sized> {
     type Terminator: Term<F>;
     fn term(&self) -> &Self::Terminator;
     fn term_mut(&mut self) -> &mut Self::Terminator;
 }
 
-
-
 pub trait Target<F: Func + ?Sized>: Term<F, Target = Self> {
     fn block(&self) -> F::Block;
-    fn block_mut(&mut self) -> &mut F::Block;
+    type BMut<'a>: DerefMut<Target = F::Block> where Self: 'a;
+    fn block_mut<'a>(&'a mut self) -> Self::BMut<'a>;
 }
 pub trait Term<F: Func + ?Sized> {
     type Target: Target<F>;

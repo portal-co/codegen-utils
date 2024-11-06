@@ -113,7 +113,8 @@ impl<
                 (val, v) = T::emit_val(self, &mut i, g, f, v.clone(), &vals, &params, Self::go, w)?;
                 vals.insert(val2, val);
             }
-            let t = f.blocks()[b.clone()].term();
+            let ks = f.blocks();
+            let t = ks[b.clone()].term();
             T::emit_term(self, &mut i, g, f, v.clone(), &vals, &params, Self::go, &t)?;
         }
     }

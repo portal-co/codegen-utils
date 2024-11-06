@@ -1,13 +1,14 @@
 use std::iter::empty;
 
 use arena_traits::{Arena, IndexIter};
+use cfg_traits::{Block as CFGBlock, Target as CFGTarget, Term as CFGTerm};
 use either::Either;
+use lending_iterator::prelude::*;
 use proc_macro2::{Span, TokenStream};
 use quasiquote::quasiquote;
 use quote::{format_ident, quote};
 use relooper::{BranchMode, RelooperLabel, ShapedBlock};
 use ssa_traits::{Block, Target, Term, TypedBlock, TypedFunc, TypedValue};
-use cfg_traits::{Block as CFGBlock, Target as CFGTarget, Term as CFGTerm};
 use syn::{Ident, Lifetime};
 fn term(b: &BranchMode) -> TokenStream {
     match b {
@@ -86,10 +87,14 @@ pub fn render_target<R: RsFunc>(
 ) -> anyhow::Result<TokenStream> {
     let vars = prepend
         .map(|x| x.rs(f))
-        .chain(t.values(f).map(|a| {
-            let a = format_ident!("V{}", a.rs(f)?);
-            anyhow::Ok(quasiquote!(#a .take()))
-        }))
+        .chain(
+            t.values(f)
+                .map::<HKT!(<'b> => anyhow::Result<TokenStream>), _>(|[], a| {
+                    let a = format_ident!("V{}", a.rs(f)?);
+                    anyhow::Ok(quasiquote!(#a .take()))
+                })
+                .into_iter(),
+        )
         .enumerate()
         .map(|(i, a)| {
             let i = format_ident!("P{}_{i}", t.block().rs(f)?);
@@ -110,7 +115,7 @@ pub fn go<F: RsFunc>(params: &[TokenStream], f: &F, e: F::Block) -> anyhow::Resu
                 if a == e{
                     Either::Left(params.iter().enumerate().map(move|(i,p)|Ok(quasiquote!(let mut #{format_ident!("P{}_{i}",a.rs(f)?)} = Some(#p)))))
                 }else{
-                    Either::Right(f.blocks()[a].params().map(|(a,_)|a).enumerate().map(move|(i,t)|Ok(quasiquote!(let mut #{format_ident!("P{}_{i}",a.rs(f)?)}: Option<#{t.rs(f)?}> = None))))
+                    Either::Right(f.blocks()[a].params().map(|(a,_)|a).enumerate().map(move|(i,t)|Ok(quasiquote!(let mut #{format_ident!("P{}_{i}",a.rs(f)?)}: Option<#{t.rs(f)?}> = None))).collect::<Vec<_>>().into_iter())
                 }
             }).chain(f.values().iter().map(|v|{
                 let ty = f.values()[v.clone()].ty(f).rs(f)?;

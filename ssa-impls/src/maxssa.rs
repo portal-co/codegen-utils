@@ -4,6 +4,7 @@ use arena_traits::{Arena, IndexIter};
 use ssa_traits::{Block, Func, HasValues, Target, Term, TypedFunc, TypedValue, Value};
 use cfg_traits::{Block as CFGBlock, Func as CFGFunc, Target as CFGTarget, Term as CFGTerm};
 use core::hash::Hash;
+use lending_iterator::prelude::*;
 
 use crate::preds;
 
@@ -50,7 +51,8 @@ impl<
     }
 
     fn run(mut self, body: &mut F) {
-        for block in body.blocks().iter().collect::<Vec<_>>() {
+        let ks = body.blocks().iter().collect::<Vec<_>>();
+        for block in ks {
             self.visit(body, block);
         }
         // eprintln!("{:?}",self.new_args.data.iter().enumerate().map(|(a,b)|(a,b.iter().map(|a|a.value.index()).collect::<Vec<_>>())).collect::<Vec<_>>());
@@ -63,13 +65,19 @@ impl<
         // processing (and to appease the borrow checker).
         let mut uses = BTreeSet::default();
         for inst in body.blocks()[block.clone()].insts() {
-            for w in <F as Func>::values(&*body)[inst].values(body) {
-                uses.insert(w);
+            let mut vs = <F as Func>::values(&*body);
+            let mut vals = vs[inst].values(body);
+            while let Some(w) = vals.next() {
+                uses.insert((**w).clone());
             }
         }
-        for u in body.blocks()[block.clone()].term().values(body) {
-            uses.insert(u.clone());
+        let mut ks = body.blocks();
+        let mut vals = ks[block.clone()].term().values(body) ;
+        while let Some(u) = vals.next(){
+            uses.insert((&**u).clone());
         }
+        drop(vals);
+        drop(ks);
 
         for u in uses {
             self.visit_use(body, block.clone(), u);
@@ -111,7 +119,8 @@ impl<
     }
 
     fn update_branch_args(&mut self, body: &mut F) {
-        for block in body.blocks().iter().collect::<Vec<_>>() {
+        let ks = body.blocks().iter().collect::<Vec<_>>();
+        for block in ks {
             let mut blockdata = &mut body.blocks_mut()[block.clone()];
             // if let Some(term) = blockdata.term.as_mut(){
             for target in blockdata.term_mut().targets_mut() {
@@ -144,26 +153,30 @@ impl<
                 .unwrap_or(value);
             v
         };
-
-        for inst in body.blocks()[block.clone()].insts().collect::<Vec<_>>() {
+        let is = body.blocks()[block.clone()].insts().collect::<Vec<_>>();
+        for inst in is {
             // let inst = body.blocks()[block].insts[i];
             let mut def = <F as Func>::values(&*body)[inst.clone()].clone();
-
-            for a in def.values_mut(body) {
-                *a = resolve(a.clone());
+            let mut vals = def.values_mut(body) ;
+            while let Some(mut a) = vals.next(){
+                **a = resolve((&**a).clone());
             }
+            drop(vals);;
             body.values_mut()[inst] = def;
         }
         let mut term = body.blocks()[block.clone()].term().clone();
-        for a in term.values_mut(body) {
-            *a = resolve(a.clone());
+        let mut vals = term.values_mut(body);
+        while let Some(mut a) = vals.next() {
+            **a = resolve((&**a).clone());
         }
+        drop(vals);
         *body.blocks_mut()[block.clone()].term_mut() = term;
     }
 
     fn update(&mut self, body: &mut F) {
         self.update_branch_args(body);
-        for block in body.blocks().iter().collect::<Vec<_>>() {
+        let ks = body.blocks().iter().collect::<Vec<_>>();
+        for block in ks {
             self.update_uses(body, block);
         }
     }

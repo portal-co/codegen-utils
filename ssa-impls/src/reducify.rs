@@ -1,14 +1,13 @@
-use arena_traits::{Arena, IndexAlloc, IndexIter};
-use ssa_traits::{Block, HasValues, Target, Term, TypedBlock, TypedFunc};
-use cfg_traits::{Block as CFGBlock, Func as CFGFunc, Target as CFGTarget, Term as CFGTerm};
-use alloc::{
-    collections::{BTreeMap, BTreeSet,  VecDeque}, vec::Vec,
-};
 use alloc::vec;
-use core::{
-    hash::Hash,
-    ops::Index,
+use alloc::{
+    collections::{BTreeMap, BTreeSet, VecDeque},
+    vec::Vec,
 };
+use arena_traits::{Arena, IndexAlloc, IndexIter};
+use cfg_traits::{Block as CFGBlock, Func as CFGFunc, Target as CFGTarget, Term as CFGTerm};
+use core::{hash::Hash, ops::Index};
+use lending_iterator::prelude::*;
+use ssa_traits::{Block, HasValues, Target, Term, TypedBlock, TypedFunc};
 pub trait RedFunc:
     TypedFunc<
     Block: Ord + Hash + Clone,
@@ -22,9 +21,11 @@ pub struct Reducifier<F: RedFunc> {
     blocks: BTreeMap<F::Block, BlockState<F>>,
 }
 
-impl<F: RedFunc> Default for Reducifier<F>{
+impl<F: RedFunc> Default for Reducifier<F> {
     fn default() -> Self {
-        Self { blocks: Default::default() }
+        Self {
+            blocks: Default::default(),
+        }
     }
 }
 
@@ -138,12 +139,15 @@ impl<F: RedFunc> Reducifier<F> {
         // empty (i.e., the edge jumps into a new loop -- adds a new
         // header -- without going through that header block).
         let mut irreducible_headers: BTreeSet<F::Block> = Default::default();
-        for (block, data) in body.blocks().iter().map(|a| (a.clone(), &body.blocks()[a])) {
+        let ks = body.blocks().iter().collect::<Vec<_>>();
+        for block in ks {
+            let data = &body.blocks()[block.clone()];
             let headers = &self
                 .blocks
                 .entry(block.clone())
                 .or_insert_with(Default::default)
-                .headers.clone();
+                .headers
+                .clone();
             for succ in &data
                 .term()
                 .targets()
@@ -275,8 +279,8 @@ impl<F: RedFunc> Reducifier<F> {
 
                 // Copy over the terminator but don't update yet --
                 // we'll do that later too.
-                *new_body.blocks_mut()[new_block.clone()].term_mut() =
-                    new_body.blocks()[block.clone()].term().clone();
+                let t = new_body.blocks()[block.clone()].term().clone();
+                *new_body.blocks_mut()[new_block.clone()].term_mut() = t;
 
                 new_block
             } else {
@@ -286,7 +290,9 @@ impl<F: RedFunc> Reducifier<F> {
             // For every terminator, determine the target context:
             //
             // let ToContext = headers(To) & !{To} & (FromContext U !headers(From))
-            let term = terminators.entry(new_block.clone()).or_insert_with(|| vec![]);
+            let term = terminators
+                .entry(new_block.clone())
+                .or_insert_with(|| vec![]);
             let succs = new_body.blocks()[block.clone()]
                 .term()
                 .targets()
@@ -339,33 +345,36 @@ impl<F: RedFunc> Reducifier<F> {
         // value-map available for all blocks and values, regardless
         // of cycles or processing order.
         for (ctx, new_block) in cloned_blocks {
-            for inst in &new_body.blocks()[new_block.clone()].insts().collect::<Vec<_>>() {
+            let is = new_body.blocks()[new_block.clone()]
+                .insts()
+                .collect::<Vec<_>>();
+            for inst in &is {
                 let mut v = new_body.values_mut()[inst.clone()].clone();
-                for val in v.values_mut(new_body) {
-                    *val = value_map
-                        .get(&(ctx, val.clone()))
+                let mut vals = v.values_mut(new_body);
+                while let Some(mut val) = vals.next() {
+                    **val = value_map
+                        .get(&(ctx, (&**val).clone()))
                         .cloned()
-                        .unwrap_or(val.clone());
+                        .unwrap_or((&**val).clone());
                 }
+                drop(vals);
                 new_body.values_mut()[inst.clone()] = v;
             }
-            let mut t = new_body.blocks_mut()[new_block.clone()]
-            .term_mut().clone();
-            for val in t
-                .values_mut(new_body)
-            {
-                *val = value_map
-                    .get(&(ctx, val.clone()))
+            let mut t = new_body.blocks_mut()[new_block.clone()].term_mut().clone();
+            let mut vals = t.values_mut(new_body);
+            while let Some(mut val) = vals.next() {
+                **val = value_map
+                    .get(&(ctx, (&**val).clone()))
                     .cloned()
-                    .unwrap_or(val.clone());
+                    .unwrap_or((&**val).clone());
             }
-            *new_body.blocks_mut()[new_block.clone()]
-            .term_mut() = t;
+            drop(vals);
+            *new_body.blocks_mut()[new_block.clone()].term_mut() = t;
         }
-
-        for block in new_body.blocks().iter().collect::<Vec<_>>().into_iter() {
+        let ks = new_body.blocks().iter().collect::<Vec<_>>().into_iter();
+        for block in ks {
             // log::trace!("processing terminators for block {}", block);
-            let block_def =&mut new_body.blocks_mut()[block.clone()];
+            let block_def = &mut new_body.blocks_mut()[block.clone()];
             let terms = match terminators.get(&block) {
                 Some(t) => t,
                 // If no entry in `terminators`, we didn't visit the
@@ -373,7 +382,7 @@ impl<F: RedFunc> Reducifier<F> {
                 None => continue,
             };
             let mut terms = terms.iter();
-            for target in block_def.term_mut().targets_mut(){
+            for target in block_def.term_mut().targets_mut() {
                 let (to_ctx, to_orig_block) = terms.next().unwrap().clone();
                 *target.block_mut() = block_map
                     .get(&(to_ctx, to_orig_block.clone()))

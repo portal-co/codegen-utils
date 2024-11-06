@@ -1,10 +1,14 @@
-use std::iter::once;
+use std::{
+    iter::once,
+    ops::{Deref, DerefMut},
+};
 
 // use anyhow::Ok;
+use cfg_traits::Term as CFGTerm;
 use id_arena::{Arena, Id};
+use lending_iterator::prelude::*;
 use sift_trait::Sift;
 use ssa_traits::{op::OpValue, Term};
-use cfg_traits::{Term as CFGTerm};
 
 pub enum Value<O, T, Y> {
     Op(O, Vec<Id<Value<O, T, Y>>>, Vec<Id<Block<O, T, Y>>>, Y),
@@ -27,21 +31,13 @@ pub struct Func<O, T, Y> {
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::Func
     for Func<O, T, Y>
 {
-
-
     type Block = Id<Block<O, T, Y>>;
 
-
-
     type Blocks = Arena<Block<O, T, Y>>;
-
-
 
     fn blocks(&self) -> &Self::Blocks {
         &self.blocks
     }
-
-
 
     fn blocks_mut(&mut self) -> &mut Self::Blocks {
         &mut self.blocks
@@ -50,29 +46,39 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::
     fn entry(&self) -> Self::Block {
         self.entry
     }
+
+    type BRef<'a>
+    where
+        Self: 'a,
+    = &'a Self::Blocks;
+
+    type BMut<'a>
+    where
+        Self: 'a,
+    = &'a mut Self::Blocks;
 }
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::Func
     for Func<O, T, Y>
 {
     type Value = Id<Value<O, T, Y>>;
 
-
-
     type Values = Arena<Value<O, T, Y>>;
-
-
 
     fn values(&self) -> &Self::Values {
         &self.vals
     }
 
-
-
     fn values_mut(&mut self) -> &mut Self::Values {
         &mut self.vals
     }
 
+    type VRef<'a> = &'a Self::Values
+    where
+        Self: 'a;
 
+    type VMut<'a> = &'a mut Self::Values
+    where
+        Self: 'a;
 }
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::TypedFunc
     for Func<O, T, Y>
@@ -96,28 +102,53 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     fn values<'a>(
         &'a self,
         f: &'a Func<O, T, Y>,
-    ) -> Box<(dyn Iterator<Item = Id<Value<O, T, Y>>> + 'a)> {
-        Box::new(match self {
-            Value::Op(_, a, _, _) => Some(a.iter().cloned()),
-            Value::Param(_, _, _) => None,
-        }
-        .into_iter()
-        .flatten())
+    ) -> Box<
+        dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn Deref<Target = Id<Value<O,T,Y>>> + 'b>)>
+            + 'a,
+    > {
+        Box::new(
+            match self {
+                Value::Op(_, a, _, _) => Some(a.iter().cloned()),
+                Value::Param(_, _, _) => None,
+            }
+            .into_iter()
+            .flatten()
+            .into_lending_iter()
+            .map::<HKT!(<'b> => Box<dyn Deref<Target = Id<Value<O,T,Y>>> + 'b>), _>(|[], x| {
+                Box::new(Box::new(x))
+            }),
+        )
     }
 
     fn values_mut<'a>(
         &'a mut self,
         g: &'a mut Func<O, T, Y>,
-    ) -> Box<(dyn Iterator<Item = &'a mut Id<Value<O, T, Y>>> + 'a)>
+    ) -> Box<
+        (dyn lending_iterator::lending_iterator::LendingIteratorDyn<
+            Item = lending_iterator::HKT!(<'b> =>
+                           // (dyn for<'b> WithLifetime<
+                           //     'b,
+                               Box<(dyn DerefMut<Target = Id<Value<O, T, Y>>> + 'b)>,
+                       //     > + 'static),
+                       // >,
+                   ),
+        > + 'a),
+    >
     where
         Func<O, T, Y>: 'a,
     {
-        Box::new(match self {
-            Value::Op(_, a, _, _) => Some(a.iter_mut()),
-            Value::Param(_, _, _) => None,
-        }
-        .into_iter()
-        .flatten())
+        Box::new(
+            match self {
+                Value::Op(_, a, _, _) => Some(a.iter_mut()),
+                Value::Param(_, _, _) => None,
+            }
+            .into_iter()
+            .flatten()
+            .into_lending_iter()
+            .map::<HKT!(<'b> => Box<dyn DerefMut<Target = Id<Value<O,T,Y>>> + 'b>), _>(|[], x| {
+                Box::new(x)
+            }),
+        )
     }
 }
 
@@ -141,8 +172,6 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::Block<Func<O, T, Y>>
     for Block<O, T, Y>
 {
-
-
     type Terminator = T;
 
     fn term(&self) -> &Self::Terminator {
@@ -168,9 +197,7 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::
     ) {
         func.blocks[key].insts.push(v);
     }
-
 }
-
 
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     ssa_traits::TypedBlock<Func<O, T, Y>> for Block<O, T, Y>
@@ -192,18 +219,46 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     fn values<'a>(
         &'a self,
         f: &'a Func<O, T, Y>,
-    ) -> Box<(dyn Iterator<Item = Id<Value<O, T, Y>>> + 'a)> {
-        Box::new(self.args.iter().cloned())
+    ) -> Box<
+        dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn Deref<Target = Id<Value<O,T,Y>>> + 'b>)>
+            + 'a,
+    > {
+        Box::new(
+            self.args
+                .iter()
+                .cloned()
+                .into_lending_iter()
+                .map::<HKT!(<'b> => Box<dyn Deref<Target = Id<Value<O,T,Y>>> + 'b>), _>(|[], x| {
+                    Box::new(Box::new(x))
+                }),
+        )
     }
 
     fn values_mut<'a>(
         &'a mut self,
         g: &'a mut Func<O, T, Y>,
-    ) -> Box<(dyn Iterator<Item = &'a mut Id<Value<O, T, Y>>> + 'a)>
+    ) -> Box<
+        (dyn lending_iterator::lending_iterator::LendingIteratorDyn<
+            Item = lending_iterator::HKT!(<'b> =>
+                           // (dyn for<'b> WithLifetime<
+                           //     'b,
+                               Box<(dyn DerefMut<Target = Id<Value<O, T, Y>>> + 'b)>,
+                       //     > + 'static),
+                       // >,
+                   ),
+        > + 'a),
+    >
     where
         Func<O, T, Y>: 'a,
     {
-        Box::new(self.args.iter_mut())
+        Box::new(
+            self.args
+                .iter_mut()
+                .into_lending_iter()
+                .map::<HKT!(<'b> => Box<dyn DerefMut<Target = Id<Value<O,T,Y>>> + 'b>), _>(
+                    |[], x| Box::new(x),
+                ),
+        )
     }
 }
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::Term<Func<O, T, Y>>
@@ -232,15 +287,18 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
         self.block
     }
 
-    fn block_mut(&mut self) -> &mut <Func<O, T, Y> as cfg_traits::Func>::Block {
-        &mut self.block
+    fn block_mut<'a>(
+        &'a mut self,
+    ) -> <Target<O, T, Y> as cfg_traits::Target<Func<O, T, Y>>>::BMut<'a> {
+        //SAFETY: They are the SAME type
+        unsafe { std::mem::transmute_copy(&&mut self.block) }
     }
 
+    type BMut<'a> = &'a mut <Func<O, T, Y> as cfg_traits::Func>::Block  where Self: 'a;
 }
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     ssa_traits::Target<Func<O, T, Y>> for Target<O, T, Y>
 {
-
     fn push_value(&mut self, v: <Func<O, T, Y> as ssa_traits::Func>::Value) {
         self.args.push(v);
     }

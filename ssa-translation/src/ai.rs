@@ -1,9 +1,10 @@
 use core::ops::ControlFlow;
 
-use alloc::vec::{Vec};
 use alloc::vec;
-use ssa_traits::{HasValues, Target, Term, TypedFunc, TypedValue};
+use alloc::vec::Vec;
 use cfg_traits::{Target as CFGTarget, Term as CFGTerm};
+use lending_iterator::prelude::*;
+use ssa_traits::{HasValues, Target, Term, TypedFunc, TypedValue};
 use valser::{AnyKind, ValSer};
 
 use crate::Translator;
@@ -13,8 +14,15 @@ pub struct AI<T: ?Sized> {
 }
 pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
     type Kind: AnyKind<Value<G::Value>: Clone> + Clone;
-    fn stamp(&mut self, fty: F::Ty, x: Self::Kind) -> anyhow::Result<(<Self::Kind as AnyKind>::Value<G::Ty>)>;
-    fn unstamp(&mut self, g: <Self::Kind as AnyKind>::Value<G::Ty>) -> anyhow::Result<(Self::Kind, F::Ty)>;
+    fn stamp(
+        &mut self,
+        fty: F::Ty,
+        x: Self::Kind,
+    ) -> anyhow::Result<(<Self::Kind as AnyKind>::Value<G::Ty>)>;
+    fn unstamp(
+        &mut self,
+        g: <Self::Kind as AnyKind>::Value<G::Ty>,
+    ) -> anyhow::Result<(Self::Kind, F::Ty)>;
     fn emit_val<T: AsMut<AI<Self>>>(
         ctx: &mut T,
         i: &mut Vec<(F::Ty, Self::Kind)>,
@@ -72,8 +80,10 @@ pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
         val: &impl Target<F>,
     ) -> anyhow::Result<Gt> {
         let v: Vec<<Self::Kind as AnyKind>::Value<G::Value>> = HasValues::values(val, f)
-            .filter_map(|v| map.get(&v))
-            .cloned()
+            .filter_map::<HKT!(<'b> => <Self::Kind as AnyKind>::Value<G::Value>), _>(|[], v| {
+                map.get(&**v).cloned()
+            })
+            .into_iter()
             .collect::<Vec<_>>();
 
         let mut is = vec![];

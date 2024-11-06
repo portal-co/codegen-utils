@@ -14,7 +14,7 @@ pub fn preds<F: cfg_traits::Func<Block: Clone + Eq>>(
     f: &F,
     k: F::Block,
 ) -> impl Iterator<Item = F::Block> + '_ {
-    return f.blocks().iter().filter(move |x| {
+    return f.blocks().iter().collect::<Vec<_>>().into_iter().filter(move |x| {
         let k = k.clone();
         f.blocks()[x.clone()]
             .term()
@@ -30,7 +30,8 @@ pub fn add_phi<F: TypedFunc<Block: Clone + Eq, Value: Clone>>(
     mut trial: impl FnMut(F::Block) -> F::Value,
 ) -> F::Value {
     let p = f.add_blockparam(k.clone(), ty);
-    for k2 in f.blocks().iter().collect::<Vec<_>>() {
+    let i = f.blocks().iter().collect::<Vec<_>>();
+    for k2 in i {
         let mut b = &mut f.blocks_mut()[k2.clone()];
         for target in b.term_mut().targets_mut() {
             if target.block() == k {
@@ -40,3 +41,4 @@ pub fn add_phi<F: TypedFunc<Block: Clone + Eq, Value: Clone>>(
     }
     return p;
 }
+
