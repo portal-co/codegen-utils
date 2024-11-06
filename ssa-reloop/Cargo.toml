@@ -1,13 +1,13 @@
 [package]
 name = "ssa-reloop"
-version = "0.2.0"
+version = "0.3.0-alpha.0"
 edition = "2021"
 license = "CC0-1.0"
 description = "Relooper tool for SSA IR"
 
 [dependencies]
 arena-traits = { version = "0.2.0-alpha.0", path = "../arena-traits" }
-cfg-traits = { version = "0.2.0-alpha.0", path = "../cfg-traits" }
+cfg-traits = { version = "0.3.0-alpha.0", path = "../cfg-traits" }
 relooper = "0.1.0"
-ssa-impls = { version = "0.2.0-alpha.0", path = "../ssa-impls" }
-ssa-traits = { version = "0.2.0-alpha.0", path = "../ssa-traits" }
+ssa-impls = { version = "0.3.0-alpha.0", path = "../ssa-impls" }
+ssa-traits = { version = "0.3.0-alpha.0", path = "../ssa-traits" }

@@ -1,6 +1,6 @@
 [package]
 name = "ssa-cc"
-version = "0.2.0"
+version = "0.3.0-alpha.0"
 edition = "2021"
 license = "CC0-1.0"
 description = "Traits for compiling SSA IR to C"
@@ -8,14 +8,14 @@ description = "Traits for compiling SSA IR to C"
 [dependencies]
 anyhow = "1.0.86"
 arena-traits = { version = "0.2.0-alpha.0", path = "../arena-traits" }
-cfg-traits = { version = "0.2.0-alpha.0", path = "../cfg-traits" }
+cfg-traits = { version = "0.3.0-alpha.0", path = "../cfg-traits" }
 either = "1.13.0"
 id-arena = { workspace = true, optional = true }
 lending-iterator = "0.1.7"
 
-ssa-canon = { version = "0.2.0-alpha.0", path = "../ssa-canon", optional = true }
+ssa-canon = { version = "0.3.0-alpha.0", path = "../ssa-canon", optional = true }
 
-ssa-traits = { version = "0.2.0-alpha.0", path = "../ssa-traits" }
+ssa-traits = { version = "0.3.0-alpha.0", path = "../ssa-traits" }
 
 [features]
 ssa-canon = ["dep:ssa-canon","id-arena"]
