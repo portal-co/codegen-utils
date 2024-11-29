@@ -237,6 +237,7 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     }
 
 }
+
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     ssa_traits::Target<Func<O, T, Y>> for Target<O, T, Y>
 {
