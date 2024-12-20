@@ -15,6 +15,7 @@ use lending_iterator::lending_iterator::constructors::into_lending_iter;
 use lending_iterator::prelude::{LendingIteratorDyn, HKT};
 use lending_iterator::LendingIterator;
 pub mod op;
+pub use cfg_traits::{val_iter,val_mut_iter};
 pub trait Func: cfg_traits::Func<Blocks: Arena<Self::Block, Output: Block<Self>>> {
     type Value;
     type Values: Arena<Self::Value, Output: Value<Self>>;
@@ -108,22 +109,6 @@ impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Val<F> {
             return Some(Box::new(&mut x.0));
         }))
     }
-}
-pub fn val_iter<'a, V: 'a, I: Iterator<Item: Deref<Target = V> + 'a> + 'a>(
-    i: I,
-) -> Box<dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn Deref<Target = V> + 'b>)> + 'a> {
-    Box::new(
-        i.into_lending_iter()
-            .map::<HKT!(<'b> => Box<dyn Deref<Target = V> + 'b>), _>(|[], x| Box::new(x)),
-    )
-}
-pub fn val_mut_iter<'a, V: 'a, I: Iterator<Item: DerefMut<Target = V> + 'a> + 'a>(
-    i: I,
-) -> Box<dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn DerefMut<Target = V> + 'b>)> + 'a> {
-    Box::new(
-        i.into_lending_iter()
-            .map::<HKT!(<'b> => Box<dyn DerefMut<Target = V> + 'b>), _>(|[], x| Box::new(x)),
-    )
 }
 impl<F: Func<Value: Clone> + ?Sized> HasValues<F> for Vec<F::Value> {
     fn values<'a>(

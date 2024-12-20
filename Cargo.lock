@@ -27,6 +27,7 @@ version = "0.3.0-alpha.0"
 dependencies = [
  "arena-traits",
  "either",
+ "lending-iterator",
 ]
 
 [[package]]
@@ -305,6 +306,7 @@ version = "0.3.0-alpha.0"
 dependencies = [
  "arena-traits",
  "cfg-traits",
+ "lending-iterator",
  "relooper",
  "ssa-impls",
  "ssa-traits",

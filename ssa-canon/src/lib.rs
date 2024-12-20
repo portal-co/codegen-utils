@@ -265,20 +265,30 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::
     for Target<O, T, Y>
 {
     type Target = Self;
-
-    fn targets<'a>(&'a self) -> Box<(dyn Iterator<Item = &'a Target<O, T, Y>> + 'a)>
+    
+    fn targets<'a>(
+        &'a self,
+    ) -> Box<
+        dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn Deref<Target = Self::Target> + 'b>)>
+            + 'a,
+    >
     where
-        Func<O, T, Y>: 'a,
-    {
-        Box::new(once(self))
+        Func<O, T, Y>: 'a {
+        cfg_traits::val_iter(once(self))
+    }
+    
+    fn targets_mut<'a>(
+        &'a mut self,
+    ) -> Box<
+        dyn LendingIteratorDyn<Item = HKT!(<'b> => Box<dyn DerefMut<Target = Self::Target> + 'b>)>
+            + 'a,
+    >
+    where
+        Func<O, T, Y>: 'a {
+        cfg_traits::val_mut_iter(once(self))
     }
 
-    fn targets_mut<'a>(&'a mut self) -> Box<(dyn Iterator<Item = &'a mut Target<O, T, Y>> + 'a)>
-    where
-        Func<O, T, Y>: 'a,
-    {
-        Box::new(once(self))
-    }
+
 }
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     cfg_traits::Target<Func<O, T, Y>> for Target<O, T, Y>

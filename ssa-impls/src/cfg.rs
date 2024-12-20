@@ -1,7 +1,9 @@
 use alloc::{collections::{BTreeMap, BTreeSet}, vec::Vec};
 use alloc::vec;
 use cfg_traits::{Block, Func, Target, Term};
-
+use lending_iterator::lending_iterator::constructors::into_lending_iter;
+use lending_iterator::prelude::{LendingIteratorDyn, HKT};
+use lending_iterator::LendingIterator;
 pub fn calculate_postorder<
     F: Func<Block: Ord + Clone>,
     SuccFn: FnMut(F::Block) -> Vec<F::Block>,
@@ -56,6 +58,6 @@ pub fn calculate_postorder<
 }
 pub fn postorder<F: Func<Block: Ord + Clone>>(f: &F) -> Vec<F::Block> {
     return calculate_postorder::<F, _>(f.entry(), |a| {
-        f.blocks()[a].term().targets().map(|a| a.block()).collect()
+        f.blocks()[a].term().targets().map::<HKT!(F::Block),_>(|[],a| a.block()).into_iter().collect()
     });
 }

@@ -76,7 +76,7 @@ impl<F: RedFunc> Reducifier<F> {
             for succ in body.blocks()[block]
                 .term()
                 .targets()
-                .map(|a| a.block())
+                .map::<HKT!(F::Block),_>(|[],a| a.block()).into_iter()
                 .collect::<BTreeSet<_>>()
             {
                 let succ_rpo = rpo_
@@ -151,7 +151,7 @@ impl<F: RedFunc> Reducifier<F> {
             for succ in &data
                 .term()
                 .targets()
-                .map(|a| a.block())
+                .map::<HKT!(F::Block),_>(|[],a| a.block()).into_iter()
                 .collect::<BTreeSet<_>>()
             {
                 // eprintln!("examining edge {} -> {}", block, succ);
@@ -296,7 +296,7 @@ impl<F: RedFunc> Reducifier<F> {
             let succs = new_body.blocks()[block.clone()]
                 .term()
                 .targets()
-                .map(|a| a.block())
+                .map::<HKT!(F::Block),_>(|[],a| a.block()).into_iter()
                 .collect::<BTreeSet<_>>();
             for succ in succs {
                 let mut ctx_blocks = self
@@ -382,7 +382,8 @@ impl<F: RedFunc> Reducifier<F> {
                 None => continue,
             };
             let mut terms = terms.iter();
-            for target in block_def.term_mut().targets_mut() {
+            let mut i = block_def.term_mut().targets_mut();
+            while let Some(mut target) = i.next() {
                 let (to_ctx, to_orig_block) = terms.next().unwrap().clone();
                 *target.block_mut() = block_map
                     .get(&(to_ctx, to_orig_block.clone()))

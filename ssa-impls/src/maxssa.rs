@@ -122,8 +122,9 @@ impl<
         let ks = body.blocks().iter().collect::<Vec<_>>();
         for block in ks {
             let mut blockdata = &mut body.blocks_mut()[block.clone()];
+            let mut i = blockdata.term_mut().targets_mut() ;
             // if let Some(term) = blockdata.term.as_mut(){
-            for target in blockdata.term_mut().targets_mut() {
+            while let Some(mut target) = i.next(){
                 for new_arg in self
                     .new_args
                     .get(&target.block())

@@ -6,6 +6,9 @@ use alloc::vec::Vec;
 use arena_traits::{Arena, IndexIter};
 use ssa_traits::{Func, TypedBlock, TypedFunc, Target as SSATarget};
 use cfg_traits::{Block,Term,Target};
+use lending_iterator::lending_iterator::constructors::into_lending_iter;
+use lending_iterator::prelude::{LendingIteratorDyn, HKT};
+use lending_iterator::LendingIterator;
 pub mod cfg;
 pub mod dom;
 pub mod maxssa;
@@ -19,7 +22,8 @@ pub fn preds<F: cfg_traits::Func<Block: Clone + Eq>>(
         f.blocks()[x.clone()]
             .term()
             .targets()
-            .find(|c| c.block() == k)
+            .map::<HKT!(F::Block),_>(|[],a| a.block()).into_iter()
+            .find(|c| *c == k)
             .is_some()
     });
 }
@@ -33,7 +37,8 @@ pub fn add_phi<F: TypedFunc<Block: Clone + Eq, Value: Clone>>(
     let i = f.blocks().iter().collect::<Vec<_>>();
     for k2 in i {
         let mut b = &mut f.blocks_mut()[k2.clone()];
-        for target in b.term_mut().targets_mut() {
+        let mut i = b.term_mut().targets_mut();
+        while let Some(mut target) = i.next() {
             if target.block() == k {
                 target.push_value(trial(k2.clone()));
             }
