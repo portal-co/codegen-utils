@@ -24,7 +24,7 @@ checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
 name = "cfg-traits"
-version = "0.3.0-alpha.0"
+version = "0.3.0-alpha.1"
 dependencies = [
  "arena-traits",
  "either",
@@ -295,7 +295,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-canon"
-version = "0.3.0-alpha.0"
+version = "0.3.0-alpha.1"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -322,7 +322,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-impls"
-version = "0.3.0-alpha.0"
+version = "0.3.0-alpha.1"
 dependencies = [
  "arena-traits",
  "cfg-traits",
@@ -332,7 +332,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-reloop"
-version = "0.3.0-alpha.0"
+version = "0.3.0-alpha.1"
 dependencies = [
  "arena-traits",
  "cfg-traits",
@@ -364,7 +364,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-traits"
-version = "0.3.0-alpha.0"
+version = "0.3.0-alpha.1"
 dependencies = [
  "anyhow",
  "arena-traits",
