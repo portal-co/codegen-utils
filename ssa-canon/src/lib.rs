@@ -306,6 +306,7 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
 
     type BMut<'a> = &'a mut <Func<O, T, Y> as cfg_traits::Func>::Block  where Self: 'a;
 }
+
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     ssa_traits::Target<Func<O, T, Y>> for Target<O, T, Y>
 {

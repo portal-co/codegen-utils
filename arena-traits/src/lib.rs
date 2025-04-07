@@ -35,3 +35,17 @@ impl<T, const N: usize> IndexIter<usize> for [T; N] {
         Box::new(0..N)
     }
 }
+#[cfg(feature = "portal-solutions-id-arena")]
+const _: () = {
+    use portal_solutions_id_arena as id_arena;
+    impl<T> IndexAlloc<id_arena::Id<T>> for id_arena::Arena<T> {
+        fn alloc(&mut self, a: Self::Output) -> id_arena::Id<T> {
+            self.alloc(a)
+        }
+    };
+    impl<T> IndexIter<id_arena::Id<T>> for id_arena::Arena<T> {
+        fn iter<'a>(&'a self) -> Box<(dyn Iterator<Item = id_arena::Id<T>> + 'a)> {
+            Box::new(self.iter().map(|a| a.0))
+        }
+    }
+};
