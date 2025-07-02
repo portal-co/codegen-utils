@@ -6,6 +6,6 @@ license = "CC0-1.0"
 description = "Traits for Control Flow Graphs"
 
 [dependencies]
-arena-traits = { version = "0.2.2", path = "../arena-traits" }
+arena-traits = { version = "0.2.3" }
 either = "1.13.0"
 lending-iterator = "0.1.7"

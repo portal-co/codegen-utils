@@ -7,8 +7,10 @@ description = "SSA to Rust converter"
 
 [dependencies]
 anyhow = "1.0.87"
-arena-traits = { version = "0.2.2", path = "../arena-traits" }
+
 cfg-traits = { version = "0.3.0-alpha.0", path = "../cfg-traits" }
+arena-traits = { version = "0.2.3" }
+
 either = "1.13.0"
 id-arena = { workspace = true, optional = true }
 lending-iterator = "0.1.7"

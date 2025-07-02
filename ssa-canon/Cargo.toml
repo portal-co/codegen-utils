@@ -7,8 +7,10 @@ description = "Simple SSA IR"
 
 [dependencies]
 anyhow = "1.0.86"
-arena-traits = { version = "0.2.2", path = "../arena-traits", features = ["id-arena"] }
+
 cfg-traits = { version = "0.3.0-alpha.0", path = "../cfg-traits" }
+arena-traits = { version = "0.2.3", features = ["id-arena"] }
+
 id-arena.workspace = true
 lending-iterator = "0.1.7"
 sift-trait = { version = "0.2.0-alpha.0", path = "../sift-trait" }
