@@ -7,7 +7,7 @@ description = "SSA to Rust converter"
 
 [dependencies]
 anyhow = "1.0.87"
-arena-traits = { version = "0.2.0-alpha.0", path = "../arena-traits" }
+arena-traits = { version = "0.2.3" }
 cfg-traits = { version = "0.2.0-alpha.0", path = "../cfg-traits" }
 either = "1.13.0"
 id-arena = { workspace = true, optional = true }

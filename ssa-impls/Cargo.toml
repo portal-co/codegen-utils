@@ -6,6 +6,6 @@ license = "CC0-1.0"
 description = "Implementation of common SSA algorithms"
 
 [dependencies]
-arena-traits = { version = "0.2.0-alpha.0", path = "../arena-traits" }
+arena-traits = { version = "0.2.3" }
 cfg-traits = { version = "0.2.0-alpha.0", path = "../cfg-traits" }
 ssa-traits = { version = "0.2.0-alpha.0", path = "../ssa-traits" }

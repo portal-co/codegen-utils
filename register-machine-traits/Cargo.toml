@@ -6,5 +6,5 @@ license = "CC0-1.0"
 description = "Traits for register machines"
 
 [dependencies]
-arena-traits = { version = "0.2.0-alpha.0", path = "../arena-traits" }
+arena-traits = { version = "0.2.3" }
 cfg-traits = { version = "0.2.0-alpha.0", path = "../cfg-traits" }
