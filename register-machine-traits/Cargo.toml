@@ -1,6 +1,6 @@
 [package]
 name = "register-machine-traits"
-version = "0.3.0-alpha.0"
+version = "0.3.0-alpha.2"
 edition = "2021"
 license = "CC0-1.0"
 description = "Traits for register machines"

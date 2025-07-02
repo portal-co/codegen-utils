@@ -25,7 +25,7 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
 name = "cfg-traits"
-version = "0.3.0-alpha.1"
+version = "0.3.0-alpha.2"
 dependencies = [
  "arena-traits",
  "either",
@@ -242,7 +242,7 @@ dependencies = [
 
 [[package]]
 name = "register-machine-traits"
-version = "0.3.0-alpha.0"
+version = "0.3.0-alpha.2"
 dependencies = [
  "arena-traits",
  "cfg-traits",
@@ -260,14 +260,14 @@ dependencies = [
 
 [[package]]
 name = "sift-trait"
-version = "0.2.3"
+version = "0.3.0-alpha.2"
 dependencies = [
  "either",
 ]
 
 [[package]]
 name = "ssa-canon"
-version = "0.3.0-alpha.1"
+version = "0.3.0-alpha.2"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -280,7 +280,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-cc"
-version = "0.3.0-alpha.0"
+version = "0.3.0-alpha.2"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -294,7 +294,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-impls"
-version = "0.3.0-alpha.1"
+version = "0.3.0-alpha.2"
 dependencies = [
  "arena-traits",
  "cfg-traits",
@@ -304,7 +304,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-reloop"
-version = "0.3.0-alpha.1"
+version = "0.3.0-alpha.2"
 dependencies = [
  "arena-traits",
  "cfg-traits",
@@ -316,7 +316,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-rust"
-version = "0.3.0-alpha.0"
+version = "0.3.0-alpha.2"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -336,7 +336,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-traits"
-version = "0.3.0-alpha.1"
+version = "0.3.0-alpha.2"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -347,7 +347,7 @@ dependencies = [
 
 [[package]]
 name = "ssa-translation"
-version = "0.3.0-alpha.0"
+version = "0.3.0-alpha.2"
 dependencies = [
  "anyhow",
  "arena-traits",
@@ -382,7 +382,7 @@ dependencies = [
 
 [[package]]
 name = "tac-traits"
-version = "0.3.0-alpha.0"
+version = "0.3.0-alpha.2"
 dependencies = [
  "arena-traits",
  "cfg-traits",
@@ -392,7 +392,7 @@ dependencies = [
 
 [[package]]
 name = "type-onion"
-version = "0.2.3"
+version = "0.3.0-alpha.2"
 
 [[package]]
 name = "unicode-ident"

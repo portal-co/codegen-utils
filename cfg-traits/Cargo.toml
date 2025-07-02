@@ -1,6 +1,6 @@
 [package]
 name = "cfg-traits"
-version = "0.3.0-alpha.1"
+version = "0.3.0-alpha.2"
 edition = "2021"
 license = "CC0-1.0"
 description = "Traits for Control Flow Graphs"

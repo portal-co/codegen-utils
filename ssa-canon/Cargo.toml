@@ -1,6 +1,6 @@
 [package]
 name = "ssa-canon"
-version = "0.3.0-alpha.1"
+version = "0.3.0-alpha.2"
 edition = "2021"
 license = "CC0-1.0"
 description = "Simple SSA IR"
@@ -13,6 +13,6 @@ arena-traits = { version = "0.2.3", features = ["id-arena"] }
 
 id-arena.workspace = true
 lending-iterator = "0.1.7"
-sift-trait = { version = "0.2.0-alpha.0", path = "../sift-trait" }
+sift-trait = { version = "0.3.0-alpha.2", path = "../sift-trait" }
 ssa-traits = { version = "0.3.0-alpha.0", path = "../ssa-traits" }
 
