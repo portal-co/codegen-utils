@@ -1,6 +1,6 @@
 [package]
 name = "ssa-cc"
-version = "0.2.1"
+version = "0.2.3"
 edition = "2021"
 license = "CC0-1.0"
 description = "Traits for compiling SSA IR to C"
