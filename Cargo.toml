@@ -6,3 +6,7 @@ resolver="2"
 
 
 id-arena = "2.2.1"
+
+cfg-traits-02 = {package="cfg-traits",version="^0.2.3"}
+ssa-traits-02 = {package="ssa-traits",version="^0.2.3"}
+tac-traits-02 = {package="tac-traits",version="^0.2.3"}
