@@ -43,7 +43,7 @@ pub fn cc<F: CCFunc>(s: &F, e: F::Block) -> anyhow::Result<String> {
                 .collect::<anyhow::Result<Vec<_>>>()?
                 .join(";");
             let term = s.blocks()[b.clone()].term().c(s)?;
-            Ok(format!("BB{}: {vals};{term}", b.c(s)?))
+            Ok(format!("BB{}:__asm__ volatile(\"\"); {vals};{term}", b.c(s)?))
         })
         .collect::<anyhow::Result<Vec<_>>>()?
         .join(";");

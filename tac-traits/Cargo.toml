@@ -11,4 +11,4 @@ cfg-traits = { version = "0.3.0-alpha.0", path = "../cfg-traits" }
 register-machine-traits = { version = "0.3.0-alpha.0", path = "../register-machine-traits" }
 arena-traits = { version = "0.2.3" }
 
-sift-trait = { version = "0.3.0-alpha.2", path = "../sift-trait" }
+sift-trait = { version = "0.3.0" }

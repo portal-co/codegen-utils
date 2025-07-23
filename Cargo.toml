@@ -1,5 +1,5 @@
 [workspace]
-members=["ssa-traits", "ssa-impls",  "ssa-translation", "ssa-reloop", "ssa-cc", "ssa-canon","sift-trait", "ssa-rust", "cfg-traits", "register-machine-traits", "tac-traits","onion"] # , "ssa-trace"
+members=["ssa-traits", "ssa-impls",  "ssa-translation", "ssa-reloop", "ssa-cc", "ssa-canon","ssa-rust", "cfg-traits", "register-machine-traits", "tac-traits"] # , "ssa-trace"
 resolver="2"
 
 [workspace.dependencies]

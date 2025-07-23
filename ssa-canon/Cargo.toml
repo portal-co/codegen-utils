@@ -13,6 +13,6 @@ arena-traits = { version = "0.2.3", features = ["id-arena"] }
 
 id-arena.workspace = true
 lending-iterator = "0.1.7"
-sift-trait = { version = "0.3.0-alpha.2", path = "../sift-trait" }
+sift-trait = { version = "0.3.0"}
 ssa-traits = { version = "0.3.0-alpha.0", path = "../ssa-traits" }
 
