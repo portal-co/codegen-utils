@@ -14,7 +14,7 @@ arena-traits = { version = "0.2.3" }
 
 either = "1.13.0"
 lending-iterator = "0.1.7"
-valser = {version="0.1.1",default-features=false,features=["alloc"]}
+valser = {version="^0.1.1",default-features=false,features=["alloc"]}
 
 [features]
 std = ["anyhow/std","ssa-traits/std"]
