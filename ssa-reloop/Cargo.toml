@@ -8,9 +8,11 @@ description = "Relooper tool for SSA IR"
 [dependencies]
 
 cfg-traits = { version = "0.3.0-alpha.0", path = "../cfg-traits" }
+ssa-impls = { version = "0.3.0-alpha.0", path = "../ssa-impls" }
+ssa-traits = { version = "0.3.0-alpha.0", path = "../ssa-traits" }
+
+
 lending-iterator = "0.1.7"
 arena-traits = { version = "0.2.3" }
 
 relooper = "0.1.0"
-ssa-impls = { version = "0.3.0-alpha.0", path = "../ssa-impls" }
-ssa-traits = { version = "0.3.0-alpha.0", path = "../ssa-traits" }

@@ -9,6 +9,11 @@ description = "SSA to Rust converter"
 anyhow = "1.0.87"
 
 cfg-traits = { version = "0.3.0-alpha.0", path = "../cfg-traits" }
+ssa-canon = { version = "0.3.0-alpha.0", path = "../ssa-canon", optional = true }
+ssa-reloop = { version = "0.3.0-alpha.0", path = "../ssa-reloop" }
+ssa-traits = { version = "0.3.0-alpha.0", path = "../ssa-traits" }
+
+
 arena-traits = { version = "0.2.3" }
 
 either = "1.13.0"
@@ -18,9 +23,7 @@ proc-macro2 = "1.0.86"
 quasiquote = "0.1.1"
 quote = "1.0.37"
 relooper = "0.1.0"
-ssa-canon = { version = "0.3.0-alpha.0", path = "../ssa-canon", optional = true }
-ssa-reloop = { version = "0.3.0-alpha.0", path = "../ssa-reloop" }
-ssa-traits = { version = "0.3.0-alpha.0", path = "../ssa-traits" }
+
 syn = "2.0.77"
 
 [features]

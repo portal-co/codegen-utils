@@ -8,7 +8,8 @@ description = "Implementation of common SSA algorithms"
 [dependencies]
 
 cfg-traits = { version = "0.3.0-alpha.0", path = "../cfg-traits" }
-lending-iterator = "0.1.7"
 ssa-traits = { version = "0.3.0-alpha.0", path = "../ssa-traits" }
+
+lending-iterator = "0.1.7"
 arena-traits = { version = "0.2.3" }
 

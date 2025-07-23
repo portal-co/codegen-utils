@@ -9,11 +9,11 @@ description = "Traits for translating SSA IR"
 anyhow = {version="1.0",default-features=false}
 
 cfg-traits = { version = "0.3.0-alpha.0", path = "../cfg-traits" }
+ssa-traits = { version = "0.3.0-alpha.0", path = "../ssa-traits" }
 arena-traits = { version = "0.2.3" }
 
 either = "1.13.0"
 lending-iterator = "0.1.7"
-ssa-traits = { version = "0.3.0-alpha.0", path = "../ssa-traits" }
 valser = {version="0.1.1",default-features=false,features=["alloc"]}
 
 [features]
