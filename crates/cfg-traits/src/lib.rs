@@ -1,5 +1,6 @@
 #![no_std]
-
+#[doc(hidden)]
+pub use core::ops::Deref;
 use core::{iter::once, ops::Index};
 
 extern crate alloc;
