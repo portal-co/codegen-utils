@@ -18,7 +18,7 @@ use lending_iterator::LendingIterator;
 
 pub struct FuncViaCfg<T, W: Deref<Target = Self> + Func + ?Sized> {
     pub cfg: T,
-    pub block: W::Block,
+    pub entry_block: W::Block,
 }
 pub trait CfgOf: Func + Deref<Target = FuncViaCfg<Self::Cfg, Self>> {
     type Cfg;
@@ -32,7 +32,7 @@ impl<T: Clone, W: Deref<Target = FuncViaCfg<T, W>> + Func<Block: Clone> + ?Sized
     fn clone(&self) -> Self {
         Self {
             cfg: self.cfg.clone(),
-            block: self.block.clone(),
+            entry_block: self.entry_block.clone(),
         }
     }
 }
@@ -40,7 +40,7 @@ impl<T: PartialEq, W: Deref<Target = FuncViaCfg<T, W>> + Func<Block: PartialEq> 
     for FuncViaCfg<T, W>
 {
     fn eq(&self, other: &Self) -> bool {
-        self.cfg == other.cfg && self.block == other.block
+        self.cfg == other.cfg && self.entry_block == other.entry_block
     }
 }
 impl<T: Eq, W: Deref<Target = FuncViaCfg<T, W>> + Func<Block: Eq> + ?Sized> Eq
@@ -55,7 +55,7 @@ impl<T: PartialOrd, W: Deref<Target = FuncViaCfg<T, W>> + Func<Block: PartialOrd
             Some(core::cmp::Ordering::Equal) => {}
             ord => return ord,
         }
-        self.block.partial_cmp(&other.block)
+        self.entry_block.partial_cmp(&other.entry_block)
     }
 }
 impl<T: Ord, W: Deref<Target = FuncViaCfg<T, W>> + Func<Block: Ord> + ?Sized> Ord
@@ -63,7 +63,7 @@ impl<T: Ord, W: Deref<Target = FuncViaCfg<T, W>> + Func<Block: Ord> + ?Sized> Or
 {
     fn cmp(&self, other: &Self) -> core::cmp::Ordering {
         match self.cfg.cmp(&other.cfg) {
-            Ordering::Equal => return self.block.cmp(&other.block),
+            Ordering::Equal => return self.entry_block.cmp(&other.entry_block),
             a => return a,
         }
     }
@@ -73,7 +73,7 @@ impl<T: Hash, W: Deref<Target = FuncViaCfg<T, W>> + Func<Block: Hash> + ?Sized> 
 {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.cfg.hash(state);
-        self.block.hash(state);
+        self.entry_block.hash(state);
     }
 }
 
