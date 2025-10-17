@@ -1,3 +1,5 @@
+use core::cmp::Ordering;
+use core::hash::Hash;
 use crate::*;
 #[macro_export]
 macro_rules! func_via_cfg {
