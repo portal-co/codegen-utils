@@ -2,7 +2,8 @@
 
 use core::cmp::Ordering;
 use core::hash::Hash;
-use core::ops::{Deref, DerefMut};
+#[doc(hidden)]
+pub use core::ops::{Deref, DerefMut};
 use core::{iter::once, ops::Index};
 
 extern crate alloc;
@@ -15,6 +16,22 @@ use either::Either;
 use lending_iterator::lending_iterator::constructors::into_lending_iter;
 use lending_iterator::prelude::{LendingIteratorDyn, HKT};
 use lending_iterator::LendingIterator;
+#[macro_export]
+macro_rules! func_via_cfg {
+    (<$($param:ident $([: $($path:path),*])?),*>$i:ident => $t:ty) => {
+        pub struct $i<$($param : $($($path)+*)?),*>(pub $crate::FuncViaCfg<$t,Self>);
+        const _: () = {
+            impl<$($param : $($($path)+*)?),*> $crate::Deref for $i<$($param),*>{
+                type Target = $crate::FuncViaCfg<$t,Self>;
+                fn deref(&self) -> &$crate::FuncViaCfg<$t,Self>{
+                    match self{
+                        $i(a) => a,
+                    }
+                }
+            }
+        }
+    };
+}
 
 pub struct FuncViaCfg<T, W: Deref<Target = Self> + Func + ?Sized> {
     pub cfg: T,
