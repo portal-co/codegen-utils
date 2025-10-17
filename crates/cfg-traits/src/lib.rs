@@ -1,5 +1,7 @@
 #![no_std]
 
+use core::cmp::Ordering;
+use core::hash::Hash;
 use core::ops::{Deref, DerefMut};
 use core::{iter::once, ops::Index};
 
@@ -13,6 +15,55 @@ use either::Either;
 use lending_iterator::lending_iterator::constructors::into_lending_iter;
 use lending_iterator::prelude::{LendingIteratorDyn, HKT};
 use lending_iterator::LendingIterator;
+
+pub struct FuncViaCfg<T, W: Deref<Target = Self> + Func> {
+    pub cfg: T,
+    pub block: W::Block,
+}
+impl<T: Clone, W: Deref<Target = FuncViaCfg<T, W>> + Func<Block: Clone>> Clone
+    for FuncViaCfg<T, W>
+{
+    fn clone(&self) -> Self {
+        Self {
+            cfg: self.cfg.clone(),
+            block: self.block.clone(),
+        }
+    }
+}
+impl<T: PartialEq, W: Deref<Target = FuncViaCfg<T, W>> + Func<Block: PartialEq>> PartialEq
+    for FuncViaCfg<T, W>
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.cfg == other.cfg && self.block == other.block
+    }
+}
+impl<T: Eq, W: Deref<Target = FuncViaCfg<T, W>> + Func<Block: Eq>> Eq for FuncViaCfg<T, W> {}
+impl<T: PartialOrd, W: Deref<Target = FuncViaCfg<T, W>> + Func<Block: PartialOrd>> PartialOrd
+    for FuncViaCfg<T, W>
+{
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+        match self.cfg.partial_cmp(&other.cfg) {
+            Some(core::cmp::Ordering::Equal) => {}
+            ord => return ord,
+        }
+        self.block.partial_cmp(&other.block)
+    }
+}
+impl<T: Ord, W: Deref<Target = FuncViaCfg<T, W>> + Func<Block: Ord>> Ord for FuncViaCfg<T, W> {
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+        match self.cfg.cmp(&other.cfg) {
+            Ordering::Equal => return self.block.cmp(&other.block),
+            a => return a,
+        }
+    }
+}
+impl<T: Hash, W: Deref<Target = FuncViaCfg<T, W>> + Func<Block: Hash>> Hash for FuncViaCfg<T, W> {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.cfg.hash(state);
+        self.block.hash(state);
+    }
+}
+
 // pub mod op;
 pub trait Func {
     // type Value;
