@@ -1,11 +1,8 @@
 #![no_std]
-
-use core::ops::IndexMut;
-
 use arena_traits::IndexIter;
+use core::ops::IndexMut;
 extern crate alloc;
-
-pub trait Func: cfg_traits::Func{
+pub trait Func: cfg_traits::Func {
     type Reg;
     type Regs: IndexIter<Self::Reg>;
     fn regs(&self) -> &Self::Regs;

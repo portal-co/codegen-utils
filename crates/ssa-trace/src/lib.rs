@@ -1,10 +1,8 @@
 #![no_std]
 extern crate alloc;
-
 use alloc::collections::BTreeMap;
 use cfg_traits::TargetI;
 use valser::ValSer;
-
 pub trait Trace<F: cfg_traits::Func, G: ssa_traits::Func>: Sized {
     type State: ValSer<G::Value>;
     type Instance;

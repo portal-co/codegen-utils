@@ -4,7 +4,6 @@ use quote::quote;
 use syn::token::Pub;
 use syn::Field;
 use syn::{punctuated::Punctuated, Fields, FieldsUnnamed, TypeParam};
-
 pub fn patch(e: &mut syn::ItemEnum) -> TokenStream{
     for v in e.variants.iter(){
         let p = format_ident!("__Pattern_{}",v.ident);
@@ -27,6 +26,5 @@ pub fn patch(e: &mut syn::ItemEnum) -> TokenStream{
         }
     }
     quote!{
-        
     }
 }

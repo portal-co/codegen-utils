@@ -1,15 +1,14 @@
-use alloc::{collections::{BTreeMap, BTreeSet}, vec::Vec};
-
+use crate::preds;
+use alloc::{
+    collections::{BTreeMap, BTreeSet},
+    vec::Vec,
+};
 use arena_traits::{Arena, IndexIter};
-use ssa_traits::{Block, Func, HasValues, Target, Term, TypedFunc, TypedValue, Value};
 use cfg_traits::{Block as CFGBlock, Func as CFGFunc, Target as CFGTarget, Term as CFGTerm};
 use core::hash::Hash;
 use lending_iterator::prelude::*;
-
-use crate::preds;
-
+use ssa_traits::{Block, Func, HasValues, Target, Term, TypedFunc, TypedValue, Value};
 // use id_arena::Id;
-
 pub fn maxssa<
     F: TypedFunc<
         Block: Ord + Hash + Clone,
@@ -22,9 +21,7 @@ pub fn maxssa<
 ) {
     MaxSSAPass::new().run(f);
 }
-
 // use crate::{util::PerID, Block, Func, SaneTerminator, Use, Value};
-
 struct MaxSSAPass<F: Func<Block: Ord + Hash + Clone, Value: Hash + Clone>> {
     /// Additional block args that must be passed to each block, in
     /// order. Value numbers are *original* values.
@@ -33,7 +30,6 @@ struct MaxSSAPass<F: Func<Block: Ord + Hash + Clone, Value: Hash + Clone>> {
     /// of value.
     value_map: BTreeMap<(F::Block, F::Value), F::Value>,
 }
-
 impl<
         F: TypedFunc<
             Block: Ord + Hash + Clone,
@@ -49,7 +45,6 @@ impl<
             value_map: BTreeMap::new(),
         }
     }
-
     fn run(mut self, body: &mut F) {
         let ks = body.blocks().iter().collect::<Vec<_>>();
         for block in ks {
@@ -58,7 +53,6 @@ impl<
         // eprintln!("{:?}",self.new_args.data.iter().enumerate().map(|(a,b)|(a,b.iter().map(|a|a.value.index()).collect::<Vec<_>>())).collect::<Vec<_>>());
         self.update(body);
     }
-
     fn visit(&mut self, body: &mut F, block: F::Block) {
         // For each use in the block, process the use. Collect all
         // uses first to deduplicate and allow more efficient
@@ -72,18 +66,16 @@ impl<
             }
         }
         let mut ks = body.blocks();
-        let mut vals = ks[block.clone()].term().values(body) ;
-        while let Some(u) = vals.next(){
+        let mut vals = ks[block.clone()].term().values(body);
+        while let Some(u) = vals.next() {
             uses.insert((&**u).clone());
         }
         drop(vals);
         drop(ks);
-
         for u in uses {
             self.visit_use(body, block.clone(), u);
         }
     }
-
     fn visit_use(&mut self, body: &mut F, block: F::Block, value: F::Value) {
         if self.value_map.contains_key(&(block.clone(), value.clone())) {
             return;
@@ -102,13 +94,11 @@ impl<
             .entry(block.clone())
             .or_default()
             .push(value.clone());
-
         // Create a placeholder value.
         let ty = <F as Func>::values(&*body)[value.clone()].ty(body);
         let blockparam = body.add_blockparam(block.clone(), ty);
         self.value_map
             .insert((block.clone(), value.clone()), blockparam);
-
         // Recursively visit preds and use the value there, to ensure
         // they have the value available as well.
         for pred in preds(&*body, block).collect::<Vec<_>>() {
@@ -117,14 +107,13 @@ impl<
             self.visit_use(body, pred, value.clone());
         }
     }
-
     fn update_branch_args(&mut self, body: &mut F) {
         let ks = body.blocks().iter().collect::<Vec<_>>();
         for block in ks {
             let mut blockdata = &mut body.blocks_mut()[block.clone()];
-            let mut i = blockdata.term_mut().targets_mut() ;
+            let mut i = blockdata.term_mut().targets_mut();
             // if let Some(term) = blockdata.term.as_mut(){
-            while let Some(mut target) = i.next(){
+            while let Some(mut target) = i.next() {
                 for new_arg in self
                     .new_args
                     .get(&target.block())
@@ -143,7 +132,6 @@ impl<
             // }
         }
     }
-
     fn update_uses(&mut self, body: &mut F, block: F::Block) {
         let resolve = |value: F::Value| {
             // let value = body.resolve_alias(value);
@@ -158,11 +146,11 @@ impl<
         for inst in is {
             // let inst = body.blocks()[block].insts[i];
             let mut def = <F as Func>::values(&*body)[inst.clone()].clone();
-            let mut vals = def.values_mut(body) ;
-            while let Some(mut a) = vals.next(){
+            let mut vals = def.values_mut(body);
+            while let Some(mut a) = vals.next() {
                 **a = resolve((&**a).clone());
             }
-            drop(vals);;
+            drop(vals);
             body.values_mut()[inst] = def;
         }
         let mut term = body.blocks()[block.clone()].term().clone();
@@ -173,7 +161,6 @@ impl<
         drop(vals);
         *body.blocks_mut()[block.clone()].term_mut() = term;
     }
-
     fn update(&mut self, body: &mut F) {
         self.update_branch_args(body);
         let ks = body.blocks().iter().collect::<Vec<_>>();
@@ -182,7 +169,6 @@ impl<
         }
     }
 }
-
 fn iter_all_same<Item: PartialEq + Eq + Clone, I: Iterator<Item = Item>>(iter: I) -> Option<Item> {
     let mut item = None;
     for val in iter {

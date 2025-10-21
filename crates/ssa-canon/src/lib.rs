@@ -2,14 +2,12 @@ use std::{
     iter::once,
     ops::{Deref, DerefMut},
 };
-
 // use anyhow::Ok;
 use cfg_traits::Term as CFGTerm;
 use id_arena::{Arena, Id};
 use lending_iterator::prelude::*;
 use sift_trait::Sift;
 use ssa_traits::{op::OpValue, Term};
-
 pub enum Value<O, T, Y> {
     Op(O, Vec<Id<Value<O, T, Y>>>, Vec<Id<Block<O, T, Y>>>, Y),
     Param(usize, Id<Block<O, T, Y>>, Y),
@@ -32,26 +30,20 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::
     for Func<O, T, Y>
 {
     type Block = Id<Block<O, T, Y>>;
-
     type Blocks = Arena<Block<O, T, Y>>;
-
     fn blocks(&self) -> &Self::Blocks {
         &self.blocks
     }
-
     fn blocks_mut(&mut self) -> &mut Self::Blocks {
         &mut self.blocks
     }
-
     fn entry(&self) -> Self::Block {
         self.entry
     }
-
     type BRef<'a>
     where
         Self: 'a,
     = &'a Self::Blocks;
-
     type BMut<'a>
     where
         Self: 'a,
@@ -61,22 +53,19 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::
     for Func<O, T, Y>
 {
     type Value = Id<Value<O, T, Y>>;
-
     type Values = Arena<Value<O, T, Y>>;
-
     fn values(&self) -> &Self::Values {
         &self.vals
     }
-
     fn values_mut(&mut self) -> &mut Self::Values {
         &mut self.vals
     }
-
-    type VRef<'a> = &'a Self::Values
+    type VRef<'a>
+        = &'a Self::Values
     where
         Self: 'a;
-
-    type VMut<'a> = &'a mut Self::Values
+    type VMut<'a>
+        = &'a mut Self::Values
     where
         Self: 'a;
 }
@@ -84,7 +73,6 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::
     for Func<O, T, Y>
 {
     type Ty = Y;
-
     fn add_blockparam(&mut self, k: Self::Block, y: Self::Ty) -> Self::Value {
         let i = self.blocks[k].params.len();
         let v = self.vals.alloc(Value::Param(i, k, y.clone()));
@@ -119,7 +107,6 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
             }),
         )
     }
-
     fn values_mut<'a>(
         &'a mut self,
         g: &'a mut Func<O, T, Y>,
@@ -151,12 +138,10 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
         )
     }
 }
-
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::Value<Func<O, T, Y>>
     for Value<O, T, Y>
 {
 }
-
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     ssa_traits::TypedValue<Func<O, T, Y>> for Value<O, T, Y>
 {
@@ -168,28 +153,23 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
         .clone()
     }
 }
-
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::Block<Func<O, T, Y>>
     for Block<O, T, Y>
 {
     type Terminator = T;
-
     fn term(&self) -> &Self::Terminator {
         &self.term
     }
-
     fn term_mut(&mut self) -> &mut Self::Terminator {
         &mut self.term
     }
 }
-
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::Block<Func<O, T, Y>>
     for Block<O, T, Y>
 {
     fn insts(&self) -> impl Iterator<Item = <Func<O, T, Y> as ssa_traits::Func>::Value> {
         self.insts.iter().cloned()
     }
-
     fn add_inst(
         func: &mut Func<O, T, Y>,
         key: <Func<O, T, Y> as cfg_traits::Func>::Block,
@@ -198,7 +178,6 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> ssa_traits::
         func.blocks[key].insts.push(v);
     }
 }
-
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     ssa_traits::TypedBlock<Func<O, T, Y>> for Block<O, T, Y>
 {
@@ -233,7 +212,6 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
                 }),
         )
     }
-
     fn values_mut<'a>(
         &'a mut self,
         g: &'a mut Func<O, T, Y>,
@@ -265,7 +243,6 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::
     for Target<O, T, Y>
 {
     type Target = Self;
-    
     fn targets<'a>(
         &'a self,
     ) -> Box<
@@ -273,10 +250,10 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::
             + 'a,
     >
     where
-        Func<O, T, Y>: 'a {
+        Func<O, T, Y>: 'a,
+    {
         cfg_traits::val_iter(once(self))
     }
-    
     fn targets_mut<'a>(
         &'a mut self,
     ) -> Box<
@@ -284,11 +261,10 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone> cfg_traits::
             + 'a,
     >
     where
-        Func<O, T, Y>: 'a {
+        Func<O, T, Y>: 'a,
+    {
         cfg_traits::val_mut_iter(once(self))
     }
-
-
 }
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     cfg_traits::Target<Func<O, T, Y>> for Target<O, T, Y>
@@ -296,24 +272,23 @@ impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     fn block(&self) -> <Func<O, T, Y> as cfg_traits::Func>::Block {
         self.block
     }
-
     fn block_mut<'a>(
         &'a mut self,
     ) -> <Target<O, T, Y> as cfg_traits::Target<Func<O, T, Y>>>::BMut<'a> {
         //SAFETY: They are the SAME type
         unsafe { std::mem::transmute_copy(&&mut self.block) }
     }
-
-    type BMut<'a> = &'a mut <Func<O, T, Y> as cfg_traits::Func>::Block  where Self: 'a;
+    type BMut<'a>
+        = &'a mut <Func<O, T, Y> as cfg_traits::Func>::Block
+    where
+        Self: 'a;
 }
-
 impl<O, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone>
     ssa_traits::Target<Func<O, T, Y>> for Target<O, T, Y>
 {
     fn push_value(&mut self, v: <Func<O, T, Y> as ssa_traits::Func>::Value) {
         self.args.push(v);
     }
-
     fn from_values_and_block(
         a: impl Iterator<Item = <Func<O, T, Y> as ssa_traits::Func>::Value>,
         k: <Func<O, T, Y> as cfg_traits::Func>::Block,
@@ -333,11 +308,8 @@ impl<O: Sift<X>, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone, X>
     OpValue<Func<O, T, Y>, CanonOp<X>> for Value<O, T, Y>
 {
     type Residue = Value<<O as Sift<X>>::Residue, T, Y>;
-
     type Capture = Vec<Id<Value<O, T, Y>>>;
-
     type Spit = (Y, Vec<Id<Block<O, T, Y>>>);
-
     fn disasm(
         self,
         f: &mut Func<O, T, Y>,
@@ -366,11 +338,9 @@ impl<O: Sift<X>, T: Term<Func<O, T, Y>, Target = Target<O, T, Y>>, Y: Clone, X>
             Value::Param(a, b, c) => Err(Value::Param(a, unsafe { std::mem::transmute(b) }, c)),
         }
     }
-
     fn of(f: &mut Func<O, T, Y>, o: CanonOp<X>, c: Self::Capture, s: Self::Spit) -> Option<Self> {
         Some(Value::Op(<O as Sift<X>>::of(o.op), c, s.1, s.0))
     }
-
     fn lift(f: &mut Func<O, T, Y>, r: Self::Residue) -> Option<Self> {
         Some(match r {
             Value::Op(o, p, q, y) => {

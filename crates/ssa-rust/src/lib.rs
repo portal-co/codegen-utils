@@ -1,5 +1,3 @@
-use std::iter::empty;
-
 use arena_traits::{Arena, IndexIter};
 use cfg_traits::{Block as CFGBlock, Target as CFGTarget, Term as CFGTerm};
 use either::Either;
@@ -9,6 +7,7 @@ use quasiquote::quasiquote;
 use quote::{format_ident, quote};
 use relooper::{BranchMode, RelooperLabel, ShapedBlock};
 use ssa_traits::{Block, Target, Term, TypedBlock, TypedFunc, TypedValue};
+use std::iter::empty;
 use syn::{Ident, Lifetime};
 fn term(b: &BranchMode) -> TokenStream {
     match b {
@@ -205,7 +204,6 @@ pub fn block<F: RsFunc>(f: &F, k: &ShapedBlock<F::Block>) -> anyhow::Result<Toke
                 None => Default::default(),
                 Some(a) => block(f, a)?,
             };
-
             let next = match s.next.as_ref() {
                 None => Default::default(),
                 Some(a) => block(f, a)?,

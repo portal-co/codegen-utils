@@ -1,13 +1,10 @@
-use std::iter::empty;
-
 use arena_traits::{Arena, IndexIter};
-
 use either::Either;
+use std::iter::empty;
 // use ssa_traits::TypedFunc;
 use cfg_traits::Block as CFGBlock;
 use lending_iterator::prelude::*;
 use ssa_traits::*;
-
 pub fn cc<F: CCFunc>(s: &F, e: F::Block) -> anyhow::Result<String> {
     let params = s.blocks()[e.clone()]
         .params()
@@ -43,7 +40,10 @@ pub fn cc<F: CCFunc>(s: &F, e: F::Block) -> anyhow::Result<String> {
                 .collect::<anyhow::Result<Vec<_>>>()?
                 .join(";");
             let term = s.blocks()[b.clone()].term().c(s)?;
-            Ok(format!("BB{}:__asm__ volatile(\"\"); {vals};{term}", b.c(s)?))
+            Ok(format!(
+                "BB{}:__asm__ volatile(\"\"); {vals};{term}",
+                b.c(s)?
+            ))
         })
         .collect::<anyhow::Result<Vec<_>>>()?
         .join(";");
@@ -100,7 +100,6 @@ pub fn render_target<C: CCFunc>(
         .enumerate()
         .map(|(i, v)| {
             let k = kp(&t.block(), i, c)?;
-
             Ok(format!("{} = {}", k, v?))
         })
         .collect::<anyhow::Result<Vec<_>>>()?

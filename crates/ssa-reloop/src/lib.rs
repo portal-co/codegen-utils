@@ -10,7 +10,6 @@ use cfg_traits::Target;
 use cfg_traits::Term;
 use lending_iterator::prelude::*;
 // use waffle::{cfg::CFGInfo, Block, FunctionBody};
-
 pub fn go<F: Func<Block: RelooperLabel>>(b: &F, k: F::Block) -> Box<ShapedBlock<F::Block>> {
     let cfg = ssa_impls::dom::domtree(b);
     // let reloop = std::panic::catch_unwind(|| {

@@ -1,14 +1,11 @@
-use core::ops::ControlFlow;
-
+use crate::Translator;
 use alloc::vec;
 use alloc::vec::Vec;
 use cfg_traits::{Target as CFGTarget, Term as CFGTerm};
+use core::ops::ControlFlow;
 use lending_iterator::prelude::*;
 use ssa_traits::{HasValues, Target, Term, TypedFunc, TypedValue};
 use valser::{AnyKind, ValSer};
-
-use crate::Translator;
-
 pub struct AI<T: ?Sized> {
     pub handler: T,
 }
@@ -43,7 +40,6 @@ pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
         <Self::Kind as AnyKind>::Value<G::Value>,
         <G as cfg_traits::Func>::Block,
     )>;
-
     fn emit_term<T: AsMut<AI<Self>>>(
         ctx: &mut T,
         i: &mut Vec<(F::Ty, Self::Kind)>,
@@ -61,7 +57,6 @@ pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
         ) -> anyhow::Result<<G as cfg_traits::Func>::Block>,
         val: &<<<F>::Blocks as core::ops::Index<<F>::Block>>::Output as cfg_traits::Block<F>>::Terminator,
     ) -> anyhow::Result<()>;
-
     fn emit_target<T: AsMut<AI<Self>>, Gt: Target<G>>(
         ctx: &mut T,
         i: &mut Vec<(F::Ty, Self::Kind)>,
@@ -85,7 +80,6 @@ pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
             })
             .into_iter()
             .collect::<Vec<_>>();
-
         let mut is = vec![];
         let mut ps = vec![];
         for w in v {
@@ -108,7 +102,6 @@ pub trait Handler<F: TypedFunc<Value: Ord>, G: TypedFunc<Value: Clone>> {
             is.push(a);
         }
         let k = go(ctx, g, f, val.block(), ps)?;
-
         Ok(Gt::from_values_and_block(is.into_iter().flatten(), k))
     }
 }
@@ -119,9 +112,7 @@ impl<
     > Translator<F, G> for AI<H>
 {
     type Meta = <H::Kind as AnyKind>::Value<G::Value>;
-
     type Instance = Vec<(F::Ty, H::Kind)>;
-
     fn add_blockparam(
         &mut self,
         i: &mut Self::Instance,
@@ -143,7 +134,6 @@ impl<
         };
         Ok((m, k))
     }
-
     fn emit_val<T: AsMut<Self>>(
         ctx: &mut T,
         i: &mut Self::Instance,
@@ -163,7 +153,6 @@ impl<
     ) -> anyhow::Result<(Self::Meta, <G as cfg_traits::Func>::Block)> {
         H::emit_val(ctx, i, g, f, k, map, params, go, val)
     }
-
     fn emit_term<T: AsMut<Self>>(
         ctx: &mut T,
         i: &mut Self::Instance,

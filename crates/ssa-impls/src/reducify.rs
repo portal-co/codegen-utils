@@ -20,7 +20,6 @@ pub trait RedFunc:
 pub struct Reducifier<F: RedFunc> {
     blocks: BTreeMap<F::Block, BlockState<F>>,
 }
-
 impl<F: RedFunc> Default for Reducifier<F> {
     fn default() -> Self {
         Self {
@@ -28,7 +27,6 @@ impl<F: RedFunc> Default for Reducifier<F> {
         }
     }
 }
-
 struct BlockState<F: RedFunc> {
     headers: BTreeSet<F::Block>,
     is_header: bool,
@@ -49,7 +47,6 @@ impl<F: RedFunc> Clone for BlockState<F> {
         }
     }
 }
-
 impl<F: RedFunc> Reducifier<F> {
     // pub fn new(body: &'a FunctionBody) -> Reducifier<'a> {
     //     let cfg = CFGInfo::new(body);
@@ -59,7 +56,6 @@ impl<F: RedFunc> Reducifier<F> {
     //         blocks: PerEntity::default(),
     //     }
     // }
-
     pub fn run(&mut self, body: &mut F) {
         // First, compute all of the loop header-sets.
         // - Start by computing RPO.
@@ -71,12 +67,12 @@ impl<F: RedFunc> Reducifier<F> {
         //   enforcing LIFO by extending appropriately.
         let mut rpo_ = crate::cfg::postorder(body);
         rpo_.reverse();
-
         for (rpo, block) in rpo_.iter().cloned().enumerate() {
             for succ in body.blocks()[block]
                 .term()
                 .targets()
-                .map::<HKT!(F::Block),_>(|[],a| a.block()).into_iter()
+                .map::<HKT!(F::Block), _>(|[], a| a.block())
+                .into_iter()
                 .collect::<BTreeSet<_>>()
             {
                 let succ_rpo = rpo_
@@ -100,7 +96,6 @@ impl<F: RedFunc> Reducifier<F> {
                 }
             }
         }
-
         let mut header_stack: Vec<F::Block> = vec![];
         for block in rpo_.iter() {
             while let Some(innermost) = header_stack.last() {
@@ -124,7 +119,6 @@ impl<F: RedFunc> Reducifier<F> {
             {
                 header_stack.push(block.clone());
             }
-
             for header in &header_stack {
                 self.blocks
                     .entry(block.clone())
@@ -133,7 +127,6 @@ impl<F: RedFunc> Reducifier<F> {
                     .insert(header.clone());
             }
         }
-
         // Now, check whether any irreducible edges exist: edges from
         // B1 to B2 where headers(B2) - headers(B1) - {B2} is not
         // empty (i.e., the edge jumps into a new loop -- adds a new
@@ -151,7 +144,8 @@ impl<F: RedFunc> Reducifier<F> {
             for succ in &data
                 .term()
                 .targets()
-                .map::<HKT!(F::Block),_>(|[],a| a.block()).into_iter()
+                .map::<HKT!(F::Block), _>(|[], a| a.block())
+                .into_iter()
                 .collect::<BTreeSet<_>>()
             {
                 // eprintln!("examining edge {} -> {}", block, succ);
@@ -169,11 +163,9 @@ impl<F: RedFunc> Reducifier<F> {
                 }
             }
         }
-
         if irreducible_headers.is_empty() {
             return;
         }
-
         // if log::log_enabled!(log::Level::Trace) {
         //     for block in self.body.blocks.iter() {
         //         let mut headers = self.blocks[block]
@@ -185,9 +177,7 @@ impl<F: RedFunc> Reducifier<F> {
         //         log::trace!("* {}: header set {:?}", block, headers);
         //     }
         // }
-
         // Now, in the irreducible case, "elaborate" the CFG.
-
         // First do limited conversion to max-SSA to fix up references
         // across contexts.
         // let mut cut_blocks = BTreeSet::default();
@@ -211,15 +201,12 @@ impl<F: RedFunc> Reducifier<F> {
         //         }
         //     }
         // }
-
         let mut new_body = body;
         crate::maxssa::maxssa(new_body);
         // let cfg = CFGInfo::new(&new_body);
         // crate::passes::maxssa::run(&mut new_body, Some(cut_blocks), &cfg);
         // crate::passes::resolve_aliases::run(&mut new_body);
-
         // log::trace!("after max-SSA run:\n{}\n", new_body.display("| ", None));
-
         // Implicitly, context {} has an identity-map from old block
         // number to new block number. We use the map only for
         // non-empty contexts.
@@ -228,13 +215,11 @@ impl<F: RedFunc> Reducifier<F> {
         context_map.insert(vec![], 0);
         let mut block_map: BTreeMap<(usize, F::Block), F::Block> = BTreeMap::default();
         let mut value_map: BTreeMap<(usize, F::Value), F::Value> = BTreeMap::default();
-
         // List of (ctx, new block) tuples for duplicated code.
         let mut cloned_blocks: Vec<(usize, F::Block)> = vec![];
         // Map from block in new body to (ctx, orig block) target, to
         // allow updating terminators.
         let mut terminators: BTreeMap<F::Block, Vec<(usize, F::Block)>> = BTreeMap::default();
-
         let mut queue: VecDeque<(usize, F::Block)> = VecDeque::new();
         let mut visited: BTreeSet<(usize, F::Block)> = BTreeSet::default();
         queue.push_back((0, new_body.entry()));
@@ -246,7 +231,6 @@ impl<F: RedFunc> Reducifier<F> {
             //     ctx,
             //     contexts[ctx]
             // );
-
             // If this is a non-default context, replicate the block.
             let new_block = if ctx != 0 {
                 // log::trace!("cloning block {} in new context", block);
@@ -259,10 +243,8 @@ impl<F: RedFunc> Reducifier<F> {
                     let blockparam = new_body.add_blockparam(new_block.clone(), ty);
                     value_map.insert((ctx, val), blockparam);
                 }
-
                 block_map.insert((ctx, block.clone()), new_block.clone());
                 cloned_blocks.push((ctx, new_block.clone()));
-
                 // Copy over all value definitions, but don't rewrite
                 // args yet -- we'll do a separate pass for that.
                 let insts = new_body.blocks()[block.clone()].insts().collect::<Vec<_>>();
@@ -276,17 +258,14 @@ impl<F: RedFunc> Reducifier<F> {
                         new_value,
                     );
                 }
-
                 // Copy over the terminator but don't update yet --
                 // we'll do that later too.
                 let t = new_body.blocks()[block.clone()].term().clone();
                 *new_body.blocks_mut()[new_block.clone()].term_mut() = t;
-
                 new_block
             } else {
                 block.clone()
             };
-
             // For every terminator, determine the target context:
             //
             // let ToContext = headers(To) & !{To} & (FromContext U !headers(From))
@@ -296,7 +275,8 @@ impl<F: RedFunc> Reducifier<F> {
             let succs = new_body.blocks()[block.clone()]
                 .term()
                 .targets()
-                .map::<HKT!(F::Block),_>(|[],a| a.block()).into_iter()
+                .map::<HKT!(F::Block), _>(|[], a| a.block())
+                .into_iter()
                 .collect::<BTreeSet<_>>();
             for succ in succs {
                 let mut ctx_blocks = self
@@ -330,16 +310,13 @@ impl<F: RedFunc> Reducifier<F> {
                 //     contexts[ctx],
                 //     contexts[to_ctx]
                 // );
-
                 term.push((to_ctx, succ.clone()));
-
                 if visited.insert((to_ctx, succ.clone())) {
                     // log::trace!("enqueue block {} ctx {}", succ, to_ctx);
                     queue.push_back((to_ctx, succ));
                 }
             }
         }
-
         // Second pass: rewrite args, and set up terminators. Both
         // happen in a second pass so that we have the block- and
         // value-map available for all blocks and values, regardless
@@ -391,14 +368,10 @@ impl<F: RedFunc> Reducifier<F> {
                     .unwrap_or(to_orig_block);
             }
         }
-
         // new_body.recompute_edges();
-
         // log::trace!("After duplication:\n{}\n", new_body.display("| ", None));
-
         // new_body.validate().unwrap();
         // new_body.verify_reducible().unwrap();
-
         // Cow::Owned(new_body)
     }
 }
