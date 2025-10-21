@@ -1,12 +1,9 @@
 #![no_std]
-
 use core::{iter::once, ops::Index};
-
 extern crate alloc;
 use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
-
 use arena_traits::Arena;
 use either::Either;
 pub mod op;
@@ -21,7 +18,6 @@ pub type BlockI<F> =
     <<F as cfg_traits::Func>::Blocks as Index<<F as cfg_traits::Func>::Block>>::Output;
 pub type TermI<F> = <BlockI<F> as cfg_traits::Block<F>>::Terminator;
 pub type TargetI<F> = <TermI<F> as cfg_traits::Term<F>>::Target;
-
 #[repr(transparent)]
 pub struct Val<F: Func + ?Sized>(pub F::Value);
 impl<F: Func<Value: Clone> + ?Sized> Clone for Val<F> {
@@ -33,7 +29,6 @@ impl<F: Func<Value: Clone> + ?Sized> HasValues<F> for Val<F> {
     fn values<'a>(&'a self, f: &'a F) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
         Box::new(once(self.0.clone()))
     }
-
     fn values_mut<'a>(
         &'a mut self,
         g: &'a mut F,
@@ -48,7 +43,6 @@ impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Val<F> {
     fn values_chain<'a>(&'a self) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
         Box::new(once(self.0.clone()))
     }
-
     fn values_chain_mut<'a>(
         &'a mut self,
     ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
@@ -62,7 +56,6 @@ impl<F: Func<Value: Clone> + ?Sized> HasValues<F> for Vec<F::Value> {
     fn values<'a>(&'a self, f: &'a F) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
         Box::new(self.iter().cloned())
     }
-
     fn values_mut<'a>(
         &'a mut self,
         g: &'a mut F,
@@ -77,7 +70,6 @@ impl<F: Func<Value: Clone> + ?Sized> HasChainableValues<F> for Vec<F::Value> {
     fn values_chain<'a>(&'a self) -> Box<(dyn Iterator<Item = <F as Func>::Value> + 'a)> {
         Box::new(self.iter().cloned())
     }
-
     fn values_chain_mut<'a>(
         &'a mut self,
     ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>
@@ -110,7 +102,6 @@ pub trait Builder<F: Func> {
 }
 impl<F: Func, B: Builder<F>> Builder<F> for anyhow::Result<B> {
     type Result = B::Result;
-
     fn build(
         self,
         f: &mut F,
@@ -121,7 +112,6 @@ impl<F: Func, B: Builder<F>> Builder<F> for anyhow::Result<B> {
 }
 impl<F: FnOnce(&mut G, G::Block) -> anyhow::Result<(R, G::Block)>, G: Func, R> Builder<G> for F {
     type Result = R;
-
     fn build(
         self,
         f: &mut G,
@@ -137,7 +127,6 @@ pub trait Block<F: Func<Blocks: Arena<F::Block, Output = Self>> + ?Sized>:
     fn add_inst(func: &mut F, key: F::Block, v: F::Value);
 }
 pub trait Value<F: Func<Values: Arena<F::Value, Output = Self>> + ?Sized>: HasValues<F> {}
-
 pub trait TypedValue<F: TypedFunc<Values: Arena<F::Value, Output = Self>> + ?Sized>:
     Value<F>
 {
@@ -157,7 +146,6 @@ pub trait TypedBlock<F: TypedFunc<Blocks: Arena<F::Block, Output = Self>> + ?Siz
 {
     fn params(&self) -> impl Iterator<Item = (F::Ty, F::Value)>;
 }
-
 pub trait HasValues<F: Func + ?Sized> {
     fn values<'a>(&'a self, f: &'a F) -> Box<dyn Iterator<Item = F::Value> + 'a>;
     fn values_mut<'a>(
@@ -183,7 +171,6 @@ impl<F: Func + ?Sized, A: HasValues<F>, B: HasValues<F>> HasValues<F> for Either
             Either::Right(b) => b.values(f),
         }
     }
-
     fn values_mut<'a>(
         &'a mut self,
         f: &'a mut F,
@@ -206,7 +193,6 @@ impl<F: Func + ?Sized, A: HasChainableValues<F>, B: HasChainableValues<F>> HasCh
             Either::Right(b) => b.values_chain(),
         }
     }
-
     fn values_chain_mut<'a>(
         &'a mut self,
     ) -> Box<(dyn Iterator<Item = &'a mut <F as Func>::Value> + 'a)>

@@ -8,10 +8,8 @@ pub mod __rexport{
 macro_rules! pliron_compat_op {
     ($f:ty => $a:ident) => {
         pub trait $a: $crate::to_ssa_traits::PlironCompatOp<$f>{
-
         }
         impl<T: $crate::to_ssa_traits::PlironCompatOp<$f>> $a for T{
-
         }
         const _: () = {
             #[$crate::linkme::distributed_slice($crate::pliron::op::OP_INTERFACE_DEPS)]

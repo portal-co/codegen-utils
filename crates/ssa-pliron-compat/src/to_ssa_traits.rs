@@ -1,11 +1,9 @@
 use std::collections::HashMap;
-
 use pliron::{
     basic_block::BasicBlock,
     context::{Context, Ptr}, op::Op, value::Value,
 };
 use ssa_traits::Func;
-
 pub trait PlironCompatOp<F: Func>: Op {
     fn to_ssa_traits(
         &self,

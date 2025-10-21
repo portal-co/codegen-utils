@@ -1,6 +1,6 @@
+use crate::*;
 use core::cmp::Ordering;
 use core::hash::Hash;
-use crate::*;
 #[macro_export]
 macro_rules! func_via_cfg {
     (<$($param:ident $([: $($path:path),*])?),*>$i:ident => $t:ty) => {
@@ -17,7 +17,6 @@ macro_rules! func_via_cfg {
         }
     };
 }
-
 pub struct FuncViaCfg<T, W: Deref<Target = Self> + Func + ?Sized> {
     pub cfg: T,
     pub entry_block: W::Block,

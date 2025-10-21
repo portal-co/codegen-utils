@@ -1,7 +1,9 @@
-use alloc::{collections::{BTreeMap, BTreeSet}, vec::Vec};
 use alloc::vec;
+use alloc::{
+    collections::{BTreeMap, BTreeSet},
+    vec::Vec,
+};
 use cfg_traits::{Block, Func, Target, Term};
-
 pub fn calculate_postorder<
     F: Func<Block: Ord + Clone>,
     SuccFn: FnMut(F::Block) -> Vec<F::Block>,
@@ -10,10 +12,8 @@ pub fn calculate_postorder<
     mut succ_blocks: SuccFn,
 ) -> Vec<F::Block> {
     let mut ret = vec![];
-
     // State: visited-block map, and explicit DFS stack.
     let mut visited: BTreeSet<F::Block> = BTreeSet::new();
-
     #[derive(Debug)]
     struct State<F: Func> {
         block: F::Block,
@@ -21,14 +21,12 @@ pub fn calculate_postorder<
         next_succ: usize,
     }
     let mut stack: Vec<State<F>> = vec![];
-
     visited.insert(entry.clone());
     stack.push(State {
         block: entry.clone(),
         succs: succ_blocks(entry.clone()),
         next_succ: 0,
     });
-
     while let Some(ref mut state) = stack.last_mut() {
         // log::trace!("postorder: TOS is {:?}", state);
         // Perform one action: push to new succ, skip an already-visited succ, or pop.
@@ -51,7 +49,6 @@ pub fn calculate_postorder<
             stack.pop();
         }
     }
-
     ret
 }
 pub fn postorder<F: Func<Block: Ord + Clone>>(f: &F) -> Vec<F::Block> {

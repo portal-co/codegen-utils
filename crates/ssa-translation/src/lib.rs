@@ -1,33 +1,33 @@
 #![no_std]
 extern crate alloc;
-
-use core::{
-    ops::{Index, IndexMut},
-};
-use  alloc::{
-    collections::BTreeMap, vec,
-};
-
-
+use alloc::{collections::BTreeMap, vec};
 use arena_traits::{Arena, IndexAlloc};
+use cfg_traits::Block as CFGBlock;
+use core::ops::{Index, IndexMut};
 use ssa_traits::TypedBlock;
 use ssa_traits::{Block, Func, TypedFunc};
-use cfg_traits::{Block as CFGBlock};
 use valser::{AnyKind, ValSer};
-
 pub mod ai;
-
 pub trait EqIter: IntoIterator + FromIterator<Self::Item> {}
 impl<T: IntoIterator + FromIterator<Self::Item>> EqIter for T {}
-
 pub trait CarryTranslator<F: TypedFunc, G: Func>:
-    Translator<F, G, Meta: ValSer<G::Value>, Instance: EqIter<Item = (F::Ty, <Self::Meta as ValSer<G::Value>>::Kind)>>
+    Translator<
+    F,
+    G,
+    Meta: ValSer<G::Value>,
+    Instance: EqIter<Item = (F::Ty, <Self::Meta as ValSer<G::Value>>::Kind)>,
+>
 {
 }
 impl<
         F: TypedFunc,
         G: Func,
-        X: Translator<F, G, Meta: ValSer<G::Value>, Instance: EqIter<Item = (F::Ty, <Self::Meta as ValSer<G::Value>>::Kind)>>,
+        X: Translator<
+            F,
+            G,
+            Meta: ValSer<G::Value>,
+            Instance: EqIter<Item = (F::Ty, <Self::Meta as ValSer<G::Value>>::Kind)>,
+        >,
     > CarryTranslator<F, G> for X
 {
 }
@@ -102,9 +102,11 @@ impl<
             self.in_map.insert((b.clone(), i.clone()), v.clone());
             let mut vals = BTreeMap::new();
             let mut params = vec![];
-            for (i2,(fp, _)) in f.blocks()[b.clone()].params().enumerate() {
+            for (i2, (fp, _)) in f.blocks()[b.clone()].params().enumerate() {
                 let val;
-                (val, v) = self.wrapped.add_blockparam(&mut i, g, f, v.clone(), fp,i2)?;
+                (val, v) = self
+                    .wrapped
+                    .add_blockparam(&mut i, g, f, v.clone(), fp, i2)?;
                 params.push(val);
             }
             for val2 in f.blocks()[b.clone()].insts() {

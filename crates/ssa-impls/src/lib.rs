@@ -1,11 +1,10 @@
 // use std::collections::BTreeSet;
 #![no_std]
 extern crate alloc;
-
 use alloc::vec::Vec;
 use arena_traits::{Arena, IndexIter};
-use ssa_traits::{Func, TypedBlock, TypedFunc, Target as SSATarget};
-use cfg_traits::{Block,Term,Target};
+use cfg_traits::{Block, Target, Term};
+use ssa_traits::{Func, Target as SSATarget, TypedBlock, TypedFunc};
 pub mod cfg;
 pub mod dom;
 pub mod maxssa;

@@ -2,7 +2,6 @@
 extern crate alloc;
 use alloc::vec;
 use alloc::vec::Vec;
-
 pub fn union<A: Eq>(mut b: impl Iterator<Item: Iterator<Item = A>>) -> Union<A> {
     let Some(a) = b.next() else {
         return Union {
