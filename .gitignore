@@ -1,4 +1,7 @@
 .DS_Store
-.vscodetarget
+.vscode
+target
 node_modules
 target
+
+Cargo.lock
