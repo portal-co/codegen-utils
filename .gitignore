@@ -1,2 +1,4 @@
+.DS_Store
+.vscodetarget
+node_modules
 target
-.vscode
