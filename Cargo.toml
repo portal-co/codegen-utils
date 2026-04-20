@@ -4,6 +4,7 @@ members = [
     "crates/ssa-impls",
     "crates/ssa-translation",
     "crates/ssa-reloop",
+    "crates/ssa-reloop2",
     "crates/ssa-cc",
     "crates/ssa-canon",
     "crates/sift-trait",

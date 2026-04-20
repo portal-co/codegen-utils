@@ -87,8 +87,8 @@ pub fn calculate<F: Func<Block: Ord + Clone>, PredFn: FnMut(B<F>) -> BTreeSet<B<
             if parent != idom.get(&node).cloned() {
                 if let Some(parent) = parent {
                     idom.insert(node, parent);
+                    changed = true;
                 }
-                changed = true;
             }
         }
     }
